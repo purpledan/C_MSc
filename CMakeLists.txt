@@ -3,4 +3,4 @@ project(C_MSc C)
 
 set(CMAKE_C_STANDARD 17)
 
-add_executable(C_MSc main.c)
+add_executable(C_MSc main.c DCL_MsgQueue.c DCL_MsgQueue.h)
