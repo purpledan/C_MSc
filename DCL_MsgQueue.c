@@ -9,7 +9,7 @@
 void DCL_Queue_init(DCL_Queue_type *MsgQueue) {
     MsgQueue->first     = NULL;
     MsgQueue->last      = NULL;
-    MsgQueue->length  = 0;
+    MsgQueue->length    = 0;
 }
 
 void DCL_Queue_pushBack(DCL_Queue_type *MsgQueue, void *x) {
@@ -77,4 +77,15 @@ void DCL_Queue_free(DCL_Queue_type *MsgQueue) {
     while (MsgQueue->length) {
         DCL_Queue_pop(MsgQueue);
     }
+}
+
+void DCL_Queue_print(DCL_Queue_type *MsgQueue) {
+    printf("FIRST\n");
+    DCL_Msg_type *indexer = MsgQueue->first;
+
+    for (int i = 0; i < MsgQueue->length; i++) {
+        printf("(%d): %p -> %p\n", i, indexer, indexer->data);
+        indexer = indexer->next;
+    }
+    printf("LAST\n");
 }

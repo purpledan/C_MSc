@@ -29,10 +29,11 @@ typedef struct DCL_Queue {
 }DCL_Queue_type;
 
 /* Method Functions */
-void            DCL_Queue_init(DCL_Queue_type *MsgQueue);
-void            DCL_Queue_pushBack(DCL_Queue_type *MsgQueue, void *x);
-void            DCL_Queue_pushFront(DCL_Queue_type *MsgQueue, void *x);
-void            *DCL_Queue_pop(DCL_Queue_type *MsgQueue);
-void            DCL_Queue_free(DCL_Queue_type *MsgQueue);
+void    DCL_Queue_init(DCL_Queue_type *MsgQueue);
+void    DCL_Queue_pushBack(DCL_Queue_type *MsgQueue, void *x);
+void    DCL_Queue_pushFront(DCL_Queue_type *MsgQueue, void *x);
+void    *DCL_Queue_pop(DCL_Queue_type *MsgQueue);
+void    DCL_Queue_free(DCL_Queue_type *MsgQueue);
+void    DCL_Queue_print(DCL_Queue_type *MsgQueue);
 
 #endif //DCL_MSGQUEUE_H

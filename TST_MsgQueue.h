@@ -5,4 +5,5 @@
 #ifndef C_MSC_TST_MSGQUEUE_H
 #define C_MSC_TST_MSGQUEUE_H
 
+
 #endif //C_MSC_TST_MSGQUEUE_H
