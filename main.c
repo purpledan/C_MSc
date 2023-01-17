@@ -1,16 +1,24 @@
 #include <stdio.h>
 #include "DCL_MsgQueue.h"
+#include "TST_MsgQueue.h"
+
+#define TEST_LEN 10
 
 int main() {
-    printf("Hello, World!\n");
-    DCL_Queue_type InstMsgQ;
-    DCL_Queue_init(&InstMsgQ);
-    int data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    DCL_Queue_type MsgQueue;
+    DCL_Queue_init(&MsgQueue);
 
-    for (int i = 0; i < 9; i++) {
-        DCL_Queue_pushBack(&InstMsgQ, &data[i]);
+    Msg_data_type buffer;
+    for (int i = 0; i < TEST_LEN; i++) {
+        TST_GenMsg(&buffer);
+        printf("Operation:%d ID:%d MSG:%s\n", i, buffer.ID, buffer.message);
+        TST_MsgQueue(&MsgQueue, &buffer);
     }
 
-    DCL_Queue_print(&InstMsgQ);
+    for (int i = 0; i < TEST_LEN; i++) {
+        TST_MsgRead(&MsgQueue, &buffer);
+        printf("Operation:%d ID:%d MSG:%s\n", i, buffer.ID, buffer.message);
+    }
+
     return 0;
 }
