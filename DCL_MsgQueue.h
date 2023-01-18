@@ -26,6 +26,7 @@ typedef struct DCL_Queue {
     DCL_Msg_type    *first;
     DCL_Msg_type    *last;
     size_t          length;
+    char            status;
 }DCL_Queue_type;
 
 /* Method Functions */
