@@ -51,7 +51,9 @@
 			[
 				0,
 				1,
-				3
+				3,
+				5,
+				7
 			]
 		}
 	],
@@ -86,7 +88,9 @@
 			[
 				0,
 				1,
-				3
+				3,
+				5,
+				7
 			]
 		},
 		{
@@ -94,7 +98,9 @@
 			"sourceIndexes" : 
 			[
 				2,
-				4
+				4,
+				6,
+				8
 			]
 		}
 	],
@@ -109,23 +115,45 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "DCL_MsgQueue.c",
+			"path" : "dcl_msgQueue.c",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"path" : "DCL_MsgQueue.h",
+			"path" : "dcl_msgQueue.h",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "TST_MsgQueue.c",
+			"path" : "dcl_serial.c",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"path" : "TST_MsgQueue.h",
+			"path" : "dcl_serial.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "dcl_string.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "dcl_string.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "dcl_triKont.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "dcl_triKont.h",
 			"sourceGroupIndex" : 1
 		}
 	],

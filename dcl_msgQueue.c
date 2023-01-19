@@ -2,20 +2,20 @@
 // Created by daniel on 16/01/23.
 //
 
-#include "DCL_MsgQueue.h"
+#include "dcl_msgQueue.h"
 #include <stdlib.h>
 #include <stdio.h>
 
-void DCL_Queue_init(DCL_Queue_type *MsgQueue) {
+void dcl_queue_init(dcl_queue_type *MsgQueue) {
     MsgQueue->first     = NULL;
     MsgQueue->last      = NULL;
     MsgQueue->length    = 0;
 }
 
-void DCL_Queue_pushBack(DCL_Queue_type *MsgQueue, void *x) {
-    DCL_Msg_type *p;
+void dcl_queue_pushBack(dcl_queue_type *MsgQueue, void *x) {
+    dcl_msg_type *p;
 
-    p = malloc(sizeof(DCL_Msg_type));
+    p = malloc(sizeof(dcl_msg_type));
     if (!p) {
         perror("Malloc for new element in Queue");
         abort();
@@ -32,10 +32,10 @@ void DCL_Queue_pushBack(DCL_Queue_type *MsgQueue, void *x) {
     MsgQueue->length++;
 }
 
-void DCL_Queue_pushFront(DCL_Queue_type *MsgQueue, void *x) {
-    DCL_Msg_type *p;
+void dcl_queue_pushFront(dcl_queue_type *MsgQueue, void *x) {
+    dcl_msg_type *p;
 
-    p = malloc(sizeof(DCL_Msg_type));
+    p = malloc(sizeof(dcl_msg_type));
     if (!p) {
         perror("Malloc for new element in Queue");
         abort();
@@ -53,9 +53,9 @@ void DCL_Queue_pushFront(DCL_Queue_type *MsgQueue, void *x) {
     MsgQueue->length++;
 }
 
-void *DCL_Queue_pop(DCL_Queue_type *MsgQueue) {
+void *dcl_queue_pop(dcl_queue_type *MsgQueue) {
     void *x;
-    DCL_Msg_type *temp;
+    dcl_msg_type *temp;
 
     if (!MsgQueue->length) {
         return NULL;
@@ -73,15 +73,15 @@ void *DCL_Queue_pop(DCL_Queue_type *MsgQueue) {
     return x;
 }
 
-void DCL_Queue_free(DCL_Queue_type *MsgQueue) {
+void dcl_queue_free(dcl_queue_type *MsgQueue) {
     while (MsgQueue->length) {
-        DCL_Queue_pop(MsgQueue);
+        dcl_queue_pop(MsgQueue);
     }
 }
 
-void DCL_Queue_print(DCL_Queue_type *MsgQueue) {
+void dcl_queue_print(dcl_queue_type *MsgQueue) {
     printf("FIRST\n");
-    DCL_Msg_type *indexer = MsgQueue->first;
+    dcl_msg_type *indexer = MsgQueue->first;
 
     for (int i = 0; i < MsgQueue->length; i++) {
         printf("(%d): %p -> %p\n", i, indexer, indexer->data);

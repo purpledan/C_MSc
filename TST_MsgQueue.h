@@ -5,7 +5,7 @@
 #ifndef C_MSC_TST_MSGQUEUE_H
 #define C_MSC_TST_MSGQUEUE_H
 
-#include "DCL_MsgQueue.h"
+#include "dcl_msgQueue.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
