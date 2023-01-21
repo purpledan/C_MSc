@@ -4,78 +4,131 @@
 
 #include "dcl_triKont.h"
 
-int dcl_trik_cmd(dcl_serialDevice* device_in, enum trik_cmds cmd, enum trik_args arg, int val, dcl_string_box* box_in) {
-    /* '/' is needed for cmd start, then pick out dev_status from the void pointer
-     * in order to populate address label. */
-    char cmd_buffer[32] = "";
-    dcl_trik_cond dev_status = *(dcl_trik_cond *)(device_in->dev_status);
-    sprintf(cmd_buffer, "/%d", dev_status.address + 1); // switch setting on pump needs +1 to work
-    bool rq_send = true;
-    // TODO: Make this not ugly!
+void dcl_trik_init(dcl_serialDevice *device_in) {
+    char read_buf[TRIK_READ_BUF] = "";
+    dcl_trik_write(device_in, "ZR");
+    dcl_trik_read(device_in, read_buf);
+}
 
-    switch (cmd) {
+void dcl_trik_setValve(dcl_serialDevice *device_in, int valveNo) {
+    char cmd[8] = "";
 
-        case init:
-            if (arg == cw) {
-                strcat(cmd_buffer, "ZR" TRIK_TERM);
-            } else if (arg == ccw) {
-                strcat(cmd_buffer, "YR" TRIK_TERM);
-            }
-            break;
-        case valve:
-            if (arg == inlet) {
-                sprintf(cmd_buffer, "%sI%dR", cmd_buffer, val);
-            } else if (arg == outlet) {
-                sprintf(cmd_buffer, "%sO%dR", cmd_buffer, val);
-            }
-            strcat(cmd_buffer, TRIK_TERM);
-            break;
-        case mov:
-            if (arg == absol) {
-                sprintf(cmd_buffer, "A%dR", val);
-            } else if (arg == asper) {
-                sprintf(cmd_buffer, "P%dR", val);
-            } else if (arg == disp) {
-                sprintf(cmd_buffer, "D%dR", val);
-            }
-            strcat(cmd_buffer, TRIK_TERM);
-            break;
-        case status:
-            if (arg == query) {
-                sprintf(cmd_buffer, "%sQ", cmd_buffer);
-            } else if (arg == plunger) {
-                sprintf(cmd_buffer, "%sRZ", cmd_buffer);
-            } else if (arg == qValve) {
-                sprintf(cmd_buffer, "%s?6", cmd_buffer);
-            }
-            strcat(cmd_buffer, TRIK_TERM);
-            break;
-        default:
-            rq_send = false;
-            break;
-
-    }
-    printf("%s\n", cmd_buffer);
-    if (rq_send) {
-        dcl_serial_write(device_in, cmd_buffer);
+    if (valveNo >= TRIK_STATUS->valve) {
+        sprintf(cmd, "I%dR", valveNo);
     } else {
+        sprintf(cmd, "O%dR", valveNo);
+    }
+    char read_buf[TRIK_READ_BUF] = "";
+    dcl_trik_write(device_in, cmd);
+    dcl_trik_read(device_in, read_buf);
+}
+
+void dcl_trik_setPlunger(dcl_serialDevice *device_in, int value) {
+    char cmd[8] = "";
+    sprintf(cmd, "A%dR", value);
+    char read_buf[TRIK_READ_BUF] = "";
+    dcl_trik_write(device_in, cmd);
+    dcl_trik_read(device_in, read_buf);
+}
+
+void dcl_trik_aspirate(dcl_serialDevice *device_in, int value) {
+    char cmd[8] = "";
+    // TODO: Implement limit based on resolution
+    sprintf(cmd, "P%dR", value);
+    char read_buf[TRIK_READ_BUF] = "";
+    dcl_trik_write(device_in, cmd);
+    dcl_trik_read(device_in, read_buf);
+}
+
+void dcl_trik_dispense(dcl_serialDevice *device_in, int value) {
+    char cmd[8] = "";
+    // TODO: Implement limit based on resolution
+    sprintf(cmd, "D%dR", value);
+    char read_buf[TRIK_READ_BUF] = "";
+    dcl_trik_write(device_in, cmd);
+    dcl_trik_read(device_in, read_buf);
+}
+
+void dcl_trik_getStatus(dcl_serialDevice *device_in) {
+    TRIK_STATUS->valve = dcl_trik_getValve(device_in);
+    TRIK_STATUS->plunger = dcl_trik_getPlunger(device_in);
+    TRIK_STATUS->statusByte = dcl_trik_getSByte(device_in);
+}
+
+int dcl_trik_getValve(dcl_serialDevice *device_in) {
+    char read_buf[TRIK_READ_BUF] = "";
+    char *data = NULL;
+    dcl_trik_write(device_in, "?6");
+    dcl_trik_read(device_in, read_buf);
+    dcl_trik_parse(read_buf, &data);
+    if (!data) {
         return -1;
     }
 
-    dcl_trik_read(device_in, box_in);
+    return atoi(data);
+}
+int dcl_trik_getPlunger(dcl_serialDevice *device_in) {
+    char read_buf[TRIK_READ_BUF] = "";
+    char *data = NULL;
+    dcl_trik_write(device_in, "RZ");
+    dcl_trik_read(device_in, read_buf);
+    dcl_trik_parse(read_buf, &data);
+    if (!data) {
+        return -1;
+    }
+
+    return atoi(data);
+}
+char dcl_trik_getSByte(dcl_serialDevice *device_in) {
+    char read_buf[TRIK_READ_BUF] = "";
+    char *data = NULL;
+    char status_byte = '\0';
+    dcl_trik_write(device_in, "Q");
+    dcl_trik_read(device_in, read_buf);
+    status_byte = dcl_trik_parse(read_buf, &data);
+
+    return status_byte;
+}
+
+int dcl_trik_write(dcl_serialDevice *device_in, char *cmd) {
+    /* '/' is needed for cmd start, then pick out dev_status from the void pointer
+     * in order to populate address label. */
+    char cmd_buffer[TRIK_CMD_BUF] = "";
+    sprintf(cmd_buffer, "/%d", ((dcl_trik_status *)device_in->dev_status)->address + 1); // switch setting on pump needs +1 to work
+    strcat(cmd_buffer, cmd);
+    strcat(cmd_buffer, TRIK_TERM);
+
+    dcl_serial_write(device_in, cmd_buffer);
 
     return 0;
 }
+int dcl_trik_read(dcl_serialDevice *device_in, char *read_buf) {
 
-int dcl_trik_read(dcl_serialDevice* device_in, dcl_string_box* box_in) {
-    dcl_string_box_empty(box_in);
-    char read_buffer[STATIC_SIZE] = "";
     ssize_t read_len = 0;
-
-    read_len = dcl_serial_read(device_in, read_buffer, STATIC_SIZE -1);
+    read_len = dcl_serial_read(device_in, read_buf, TRIK_READ_BUF - 1);
     if (read_len < 0) {
         return -1;
     }
-    dcl_string_box_insert(box_in, read_buffer, read_len);
-    return 0;
+    return read_len;
+}
+
+char dcl_trik_parse(char *read_buf, char **ret_data) {
+    char *indexer = NULL;
+    char ret_byte = '\0';
+
+    indexer = strrchr(read_buf, 0x03);
+    if (!indexer) {
+        return '\0';
+    }
+    *indexer = '\0';
+
+    indexer = strchr(read_buf, '0');
+    if (!indexer) {
+        return '\0';
+    }
+    ret_byte = *(++indexer);
+    *indexer = '\0';
+    *ret_data = ++indexer;
+
+    return ret_byte;
 }
