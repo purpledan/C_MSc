@@ -76,6 +76,18 @@ build CMakeFiles/C_MSc.dir/dcl_triKont.c.o: C_COMPILER__C_MSc_Debug /Users/dan/C
   OBJECT_DIR = CMakeFiles/C_MSc.dir
   OBJECT_FILE_DIR = CMakeFiles/C_MSc.dir
 
+build CMakeFiles/C_MSc.dir/dcl_fsm.c.o: C_COMPILER__C_MSc_Debug /Users/dan/C_Projects/C_MSc/dcl_fsm.c || cmake_object_order_depends_target_C_MSc
+  DEP_FILE = CMakeFiles/C_MSc.dir/dcl_fsm.c.o.d
+  FLAGS = -O0 -v -glldb -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
+  OBJECT_DIR = CMakeFiles/C_MSc.dir
+  OBJECT_FILE_DIR = CMakeFiles/C_MSc.dir
+
+build CMakeFiles/C_MSc.dir/dcl_threads.c.o: C_COMPILER__C_MSc_Debug /Users/dan/C_Projects/C_MSc/dcl_threads.c || cmake_object_order_depends_target_C_MSc
+  DEP_FILE = CMakeFiles/C_MSc.dir/dcl_threads.c.o.d
+  FLAGS = -O0 -v -glldb -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
+  OBJECT_DIR = CMakeFiles/C_MSc.dir
+  OBJECT_FILE_DIR = CMakeFiles/C_MSc.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target C_MSc
@@ -84,7 +96,7 @@ build CMakeFiles/C_MSc.dir/dcl_triKont.c.o: C_COMPILER__C_MSc_Debug /Users/dan/C
 #############################################
 # Link the executable C_MSc
 
-build C_MSc: C_EXECUTABLE_LINKER__C_MSc_Debug CMakeFiles/C_MSc.dir/main.c.o CMakeFiles/C_MSc.dir/dcl_msgQueue.c.o CMakeFiles/C_MSc.dir/dcl_serial.c.o CMakeFiles/C_MSc.dir/dcl_string.c.o CMakeFiles/C_MSc.dir/dcl_triKont.c.o
+build C_MSc: C_EXECUTABLE_LINKER__C_MSc_Debug CMakeFiles/C_MSc.dir/main.c.o CMakeFiles/C_MSc.dir/dcl_msgQueue.c.o CMakeFiles/C_MSc.dir/dcl_serial.c.o CMakeFiles/C_MSc.dir/dcl_string.c.o CMakeFiles/C_MSc.dir/dcl_triKont.c.o CMakeFiles/C_MSc.dir/dcl_fsm.c.o CMakeFiles/C_MSc.dir/dcl_threads.c.o
   FLAGS = -O0 -v -glldb -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7
   OBJECT_DIR = CMakeFiles/C_MSc.dir
   POST_BUILD = :

@@ -10,13 +10,12 @@
 #include "dcl_string.h"
 #include "dcl_serial.h"
 
-#define TRIK_CMD_BUF 32
-#define TRIK_READ_BUF 32
-#define TRIK_TERM "\r\n"
-#define TRIK_6D 6
-#define TRIK_STATUS ((dcl_trik_status *)device_in->dev_status)
+#define TRIC_CMD_BUF 32
+#define TRIC_READ_BUF 32
+#define TRIC_TERM "\r\n"
+#define TRIC_STATUS ((dcl_triC_status *)device_in->dev_status)
 
-typedef struct dcl_trik_status{
+typedef struct dcl_triC_status{
     int address;                    // Switch setting on pump
     int valve;                      // Valve position
     int plunger;                    // Plunger position
@@ -25,20 +24,21 @@ typedef struct dcl_trik_status{
     int sV;                         // start velocity manual pg67
     int topV;                       // top velocity manual pg 67
     char statusByte;                // Status Byte
-} dcl_trik_status;
+} dcl_triC_status;
 
-void dcl_trik_init(dcl_serialDevice *device_in);
-void dcl_trik_setValve(dcl_serialDevice *device_in, int valveNo);
-void dcl_trik_setPlunger(dcl_serialDevice *device_in, int value);
-void dcl_trik_aspirate(dcl_serialDevice *device_in, int value);
-void dcl_trik_dispense(dcl_serialDevice *device_in, int value);
-void dcl_trik_getStatus(dcl_serialDevice *device_in);
-int dcl_trik_getValve(dcl_serialDevice *device_in);
-int dcl_trik_getPlunger(dcl_serialDevice *device_in);
-char dcl_trik_getSByte(dcl_serialDevice *device_in);
-
-char dcl_trik_parse(char *read_buf, char **ret_data);
-
-int dcl_trik_write(dcl_serialDevice *device_in, char *cmd);
-int dcl_trik_read(dcl_serialDevice *device_in, char *read_buf);
+/* Device specific functions */
+void dcl_triC_init(dcl_serialDevice *device_in);
+void dcl_triC_setValve(dcl_serialDevice *device_in, int valveNo);
+void dcl_triC_setPlunger(dcl_serialDevice *device_in, int value);
+void dcl_triC_aspirate(dcl_serialDevice *device_in, int value);
+void dcl_triC_dispense(dcl_serialDevice *device_in, int value);
+void dcl_triC_getStatus(dcl_serialDevice *device_in);
+int dcl_triC_getValve(dcl_serialDevice *device_in);
+int dcl_triC_getPlunger(dcl_serialDevice *device_in);
+char dcl_triC_getSByte(dcl_serialDevice *device_in);
+/* Helper functions */
+char dcl_triC_parse(char *read_buf, char **ret_data);
+/* Raw IO functions */
+int dcl_triC_write(dcl_serialDevice *device_in, char *cmd);
+int dcl_triC_read(dcl_serialDevice *device_in, char *read_buf);
 #endif //LIB_DCL_TRIKONT_H

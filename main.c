@@ -1,25 +1,24 @@
 
+#include <pthread.h>
 #include "dcl_triKont.h"
+#include "dcl_threads.h"
+
+/* Global Variables */
+dcl_queue_type worker_queue = {
+        .mutex = PTHREAD_MUTEX_INITIALIZER,
+        .alert = PTHREAD_COND_INITIALIZER
+};
+
+pthread_mutex_t pumpA_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t pumpA_alert = PTHREAD_COND_INITIALIZER;
+dcl_triC_status pumpA_status = {
+        .address = -1,
+        .plunger = -1,
+        .statusByte = '\0'
+};
 
 int main() {
-    dcl_trik_status stat_trikC3000 = {
-            .address = 0,
-            .plunger = 0,
-            .statusByte = '\0'
-    };
-    dcl_serialDevice dev_trikC3000 = {
-            .instrument_name = "TriKont Syringe",
-            .dev_name = "/dev/tty.usbserial-0001",
-            .dev_status = &stat_trikC3000,
-    };
 
-    printf("Connecting to %s\n", dev_trikC3000.instrument_name);
-    /* Open a fd to a device, device is critical so should abort if not opened */
-    if ( !dcl_serial_setup(&dev_trikC3000) ) {
-        printf("Connection to %s successful\n", dev_trikC3000.instrument_name);
-    } else {
-        return EXIT_FAILURE;
-    }
     dcl_trik_init(&dev_trikC3000);
 
     dcl_trik_getStatus(&dev_trikC3000);
@@ -33,6 +32,6 @@ int main() {
     dcl_trik_getStatus(&dev_trikC3000);
     printf("Current status of pump: Valve = %d, Plunger = %d, Byte = %c\n", stat_trikC3000.valve, stat_trikC3000.plunger, stat_trikC3000.statusByte);
 
-    dcl_serial_close(&dev_trikC3000);
+
     return 0;
 }
