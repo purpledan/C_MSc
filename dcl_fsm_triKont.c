@@ -3,14 +3,18 @@
 //
 
 #include "dcl_fsm_triKont.h"
-
+/*
 void state_triC_create(void *arg) {
     int (*arg[state_init])() = state_triC_init;
 }
+*/
 
-int state_triC_init(void *arg) {
-
+state_triC state_triC_init(state_triC_cluster_type *cluster_in) {
+    dcl_triC_init(cluster_in->device_in);
+    return state_idle;
 }
-void *state_triC_idle(void *arg) {
 
+state_triC state_triC_idle(state_triC_cluster_type *cluster_in) {
+    printf("Leaving FSM\n");
+    return state_exit;
 }
