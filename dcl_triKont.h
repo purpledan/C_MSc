@@ -33,9 +33,11 @@ void dcl_triC_setPlunger(dcl_serialDevice *device_in, int value);
 void dcl_triC_aspirate(dcl_serialDevice *device_in, int value);
 void dcl_triC_dispense(dcl_serialDevice *device_in, int value);
 void dcl_triC_getStatus(dcl_serialDevice *device_in);
+void dcl_triC_getSetup(dcl_serialDevice *device_in);
 int dcl_triC_getValve(dcl_serialDevice *device_in);
 int dcl_triC_getPlunger(dcl_serialDevice *device_in);
 char dcl_triC_getSByte(dcl_serialDevice *device_in);
+
 /* Helper functions */
 char dcl_triC_parse(char *read_buf, char **ret_data);
 /* Raw IO functions */

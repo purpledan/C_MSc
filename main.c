@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include "dcl_triKont.h"
 #include "dcl_threads.h"
+#include "dcl_msg_triKont.h"
 
 /* Global Variables */
 dcl_queue_type worker_queue = {
@@ -17,6 +18,16 @@ dcl_triC_status pumpA_status = {
 };
 
 int main() {
+
+    // Init MSG queue
+    dcl_queue_init(&worker_queue);
+    // Test MSG
+    msg_type buffer = {
+            .terminate = 0,
+            .arg = "PUL,1,3000\0"
+    };
+    triC_queueMsg(&worker_queue, &buffer);
+
     int status;
     pthread_t worker_ID;
     status = pthread_create(&worker_ID, NULL, pumpThread, NULL);

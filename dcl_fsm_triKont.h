@@ -6,6 +6,7 @@
 #define C_MSC_DCL_FSM_TRIKONT_H
 #include <stdbool.h>
 #include "dcl_triKont.h"
+#include "dcl_msg_triKont.h"
 
 typedef enum state_triC {state_init,
                          state_action,
@@ -19,7 +20,8 @@ typedef enum state_triC {state_init,
 
 typedef struct state_triC_cluster {
     dcl_serialDevice *device_in;
-    // TODO struct Copy of last MSG
+    dcl_queue_type *queue;
+    msg_type msg_buffer;
     bool action_busy;   // Pump is performing an action
 }state_triC_cluster_type;
 
@@ -27,4 +29,5 @@ void state_triC_create(void *arg);
 
 state_triC state_triC_init(state_triC_cluster_type *cluster_in);
 state_triC state_triC_idle(state_triC_cluster_type *cluster_in);
+state_triC state_triC_getMsg(state_triC_cluster_type* cluster_in);
 #endif //C_MSC_DCL_FSM_TRIKONT_H

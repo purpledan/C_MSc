@@ -11,7 +11,7 @@ void dcl_triC_init(dcl_serialDevice *device_in) {
 }
 
 void dcl_triC_setValve(dcl_serialDevice *device_in, int valveNo) {
-    char cmd[8] = "";
+    char cmd[32] = "";
 
     if (valveNo >= TRIC_STATUS->valve) {
         sprintf(cmd, "I%dR", valveNo);
@@ -53,6 +53,14 @@ void dcl_triC_getStatus(dcl_serialDevice *device_in) {
     TRIC_STATUS->valve = dcl_triC_getValve(device_in);
     TRIC_STATUS->plunger = dcl_triC_getPlunger(device_in);
     TRIC_STATUS->statusByte = dcl_triC_getSByte(device_in);
+}
+
+void dcl_triC_getSetup(dcl_serialDevice *device_in) {
+    TRIC_STATUS->valve = dcl_triC_getValve(device_in);
+    TRIC_STATUS->plunger = dcl_triC_getPlunger(device_in);
+    TRIC_STATUS->statusByte = dcl_triC_getSByte(device_in);
+
+
 }
 
 int dcl_triC_getValve(dcl_serialDevice *device_in) {

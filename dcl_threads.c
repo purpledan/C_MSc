@@ -12,16 +12,18 @@ extern dcl_queue_type worker_queue;
 void *pumpThread(void *arg) {
     /* Finite state machine array */
     state_triC ( *fsm_triC[numStates] )(state_triC_cluster_type *cluster_in) = {[state_idle] = state_triC_idle,
-                                                                                [state_init] = state_triC_init};
+                                                                                [state_init] = state_triC_init,
+                                                                                [state_getMsg] =state_triC_getMsg};
     state_triC next_state = state_init;
 
     dcl_serialDevice dev_trikC3000 = {
             .instrument_name = "TriKont Syringe",
-            .dev_name = "/dev/tty.usbserial-0001",
+            .dev_name = "/dev/ttyUSB0",
             .dev_status = &pumpA_status,
     };
     state_triC_cluster_type thread_cluster = {
             .device_in = & dev_trikC3000,
+            .queue = &worker_queue
     };
 
     printf("Connecting to %s\n", dev_trikC3000.instrument_name);
@@ -39,8 +41,8 @@ void *pumpThread(void *arg) {
     pthread_mutex_lock(&pumpA_mutex);
     pthread_mutex_lock(&worker_queue.mutex);
     */
-    //dcl_triC_init(&dev_trikC3000);
 
+    /*
     dcl_triC_getStatus(&dev_trikC3000);
     dcl_triC_setValve(&dev_trikC3000, 1);
     sleep(2);
@@ -59,6 +61,7 @@ void *pumpThread(void *arg) {
     dcl_triC_getStatus(&dev_trikC3000);
     dcl_triC_setPlunger(&dev_trikC3000, 0);
     sleep(4);
+    */
 
     dcl_serial_close(&dev_trikC3000);
     return 0;
