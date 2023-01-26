@@ -9,7 +9,7 @@
 
 #include "dcl_string.h"
 #include "dcl_serial.h"
-
+#define TRIC_PRE_BUF 16
 #define TRIC_CMD_BUF 32
 #define TRIC_READ_BUF 32
 #define TRIC_TERM "\r\n"
@@ -23,6 +23,7 @@ typedef struct dcl_triC_status{
     int slope;                      // acc slope manual pg66
     int sV;                         // start velocity manual pg67
     int topV;                       // top velocity manual pg 67
+    bool initialised;               // is pump initialised?
     char statusByte;                // Status Byte
 } dcl_triC_status;
 
@@ -37,7 +38,14 @@ void dcl_triC_getSetup(dcl_serialDevice *device_in);
 int dcl_triC_getValve(dcl_serialDevice *device_in);
 int dcl_triC_getPlunger(dcl_serialDevice *device_in);
 char dcl_triC_getSByte(dcl_serialDevice *device_in);
-
+int dcl_triC_getsV(dcl_serialDevice *device_in);
+int dcl_triC_getTopV(dcl_serialDevice *device_in);
+int dcl_triC_getSlope(dcl_serialDevice *device_in);
+bool dcl_triC_getInit(dcl_serialDevice *device_in);
+void dcl_triC_setsV(dcl_serialDevice *device_in, int startV);
+void dcl_triC_setTopV(dcl_serialDevice *device_in, int topV);
+void dcl_triC_setSlope(dcl_serialDevice *device_in, int accSlope);
+void dcl_triC_setRes(dcl_serialDevice *device_in, int resolution);
 /* Helper functions */
 char dcl_triC_parse(char *read_buf, char **ret_data);
 /* Raw IO functions */

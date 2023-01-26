@@ -42,10 +42,12 @@ void *pumpThread(void *arg) {
     pthread_mutex_lock(&worker_queue.mutex);
     */
 
-    /*
+
     dcl_triC_getStatus(&dev_trikC3000);
     dcl_triC_setValve(&dev_trikC3000, 1);
     sleep(2);
+    dcl_triC_getStatus(&dev_trikC3000);
+    /*
     dcl_triC_getStatus(&dev_trikC3000);
     dcl_triC_setPlunger(&dev_trikC3000, 1500);
     sleep(4);
@@ -62,7 +64,10 @@ void *pumpThread(void *arg) {
     dcl_triC_setPlunger(&dev_trikC3000, 0);
     sleep(4);
     */
-
+    printf("Valve: %d\n", ((dcl_triC_status *)dev_trikC3000.dev_status)->valve );
+    printf("Plunger: %d\n", ((dcl_triC_status *)dev_trikC3000.dev_status)->plunger );
+    printf("TopV: %d\n", ((dcl_triC_status *)dev_trikC3000.dev_status)->topV );
+    printf("Init?: %b\n", ((dcl_triC_status *)dev_trikC3000.dev_status)->initialised );
     dcl_serial_close(&dev_trikC3000);
     return 0;
 }
