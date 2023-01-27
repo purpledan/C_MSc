@@ -13,7 +13,10 @@ void state_triC_create(void *arg) {
 state_triC state_triC_init(state_triC_cluster_type *cluster_in) {
     printf("Init\n");
     dcl_triC_getSetup(cluster_in->device_in);
-    //dcl_triC_init(cluster_in->device_in);
+    /* You can do disgusting things in C, example below */
+    if ( !(*(dcl_triC_status *)(cluster_in->device_in->dev_status)).initialised ) {
+        dcl_triC_init(cluster_in->device_in);
+    }
     return state_idle;
 }
 
@@ -24,7 +27,35 @@ state_triC state_triC_idle(state_triC_cluster_type *cluster_in) {
 
 state_triC state_triC_getMsg(state_triC_cluster_type* cluster_in) {
     printf("Getting Msg\n");
-    triC_readMsg(cluster_in->queue, &cluster_in->msg_buffer);
-    printf("Got Msg: %s\n", cluster_in->msg_buffer.arg);
+    if (cluster_in->queue->length) {
+        triC_readMsg(cluster_in->queue, &cluster_in->msg_buffer);
+        printf("Got Msg: %s\n", cluster_in->msg_buffer.arg);
+        sscanf(cluster_in->msg_buffer.arg,"%[A-Z],%d,%d",
+               cluster_in->nxt_cmd,
+               &cluster_in->arg1,
+               &cluster_in->arg2);
+        return state_action;
+    }
+    printf("No Msg\n");
     return state_exit;
+}
+
+state_triC state_triC_action(state_triC_cluster_type *cluster_in) {
+    printf("Executing MSG:\n");
+
+    if (!strcmp("PSH", cluster_in->nxt_cmd) ) {
+        dcl_triC_getStatus(cluster_in->device_in);
+        dcl_triC_setValve(cluster_in->device_in, cluster_in->arg1);
+        sleep(3);
+        dcl_triC_dispense(cluster_in->device_in, cluster_in->arg2);
+        sleep(5);
+    } else if (!strcmp("PUL", cluster_in->nxt_cmd) ) {
+        dcl_triC_getStatus(cluster_in->device_in);
+        dcl_triC_setValve(cluster_in->device_in, cluster_in->arg1);
+        sleep(3);
+        dcl_triC_aspirate(cluster_in->device_in, cluster_in->arg2);
+        sleep(5);
+    }
+
+    return state_getMsg;
 }

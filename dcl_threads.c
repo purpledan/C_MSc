@@ -13,7 +13,8 @@ void *pumpThread(void *arg) {
     /* Finite state machine array */
     state_triC ( *fsm_triC[numStates] )(state_triC_cluster_type *cluster_in) = {[state_idle] = state_triC_idle,
                                                                                 [state_init] = state_triC_init,
-                                                                                [state_getMsg] =state_triC_getMsg};
+                                                                                [state_getMsg] = state_triC_getMsg,
+                                                                                [state_action] = state_triC_action};
     state_triC next_state = state_init;
 
     dcl_serialDevice dev_trikC3000 = {
@@ -42,28 +43,6 @@ void *pumpThread(void *arg) {
     pthread_mutex_lock(&worker_queue.mutex);
     */
 
-
-    dcl_triC_getStatus(&dev_trikC3000);
-    dcl_triC_setValve(&dev_trikC3000, 1);
-    sleep(2);
-    dcl_triC_getStatus(&dev_trikC3000);
-    /*
-    dcl_triC_getStatus(&dev_trikC3000);
-    dcl_triC_setPlunger(&dev_trikC3000, 1500);
-    sleep(4);
-    dcl_triC_getStatus(&dev_trikC3000);
-    dcl_triC_setValve(&dev_trikC3000, 2);
-    sleep(2);
-    dcl_triC_getStatus(&dev_trikC3000);
-    dcl_triC_setPlunger(&dev_trikC3000, 3000);
-    sleep(5);
-    dcl_triC_getStatus(&dev_trikC3000);
-    dcl_triC_setValve(&dev_trikC3000, 6);
-    sleep(2);
-    dcl_triC_getStatus(&dev_trikC3000);
-    dcl_triC_setPlunger(&dev_trikC3000, 0);
-    sleep(4);
-    */
     printf("Valve: %d\n", ((dcl_triC_status *)dev_trikC3000.dev_status)->valve );
     printf("Plunger: %d\n", ((dcl_triC_status *)dev_trikC3000.dev_status)->plunger );
     printf("TopV: %d\n", ((dcl_triC_status *)dev_trikC3000.dev_status)->topV );

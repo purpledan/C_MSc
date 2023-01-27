@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <string.h>
 #include "dcl_triKont.h"
 #include "dcl_threads.h"
 #include "dcl_msg_triKont.h"
@@ -24,8 +25,12 @@ int main() {
     // Test MSG
     msg_type buffer = {
             .terminate = 0,
-            .arg = "PUL,1,3000\0"
+            .arg = "PUL,1,1500\0"
     };
+    triC_queueMsg(&worker_queue, &buffer);
+    strcpy(buffer.arg, "PUL,2,1500\0");
+    triC_queueMsg(&worker_queue, &buffer);
+    strcpy(buffer.arg, "PSH,6,3000\0");
     triC_queueMsg(&worker_queue, &buffer);
 
     int status;

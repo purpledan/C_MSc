@@ -140,12 +140,11 @@ int dcl_triC_getSlope(dcl_serialDevice *device_in){
 bool dcl_triC_getInit(dcl_serialDevice *device_in) {
     char read_buf[TRIC_READ_BUF] = "";
     char *data = NULL;
-    char status_byte = '\0';
     dcl_triC_write(device_in, "?19");
     dcl_triC_read(device_in, read_buf);
-    status_byte = dcl_triC_parse(read_buf, &data);
+    dcl_triC_parse(read_buf, &data);
 
-    if (status_byte == '0') {
+    if (data[0] == '0') {
         return false;
     } else {
         return true;
@@ -204,9 +203,9 @@ int dcl_triC_read(dcl_serialDevice *device_in, char *read_buf) {
 }
 
 char dcl_triC_parse(char *read_buf, char **ret_data) {
+    printf("Buf: %s\n", read_buf);
     char *indexer = NULL;
     char ret_byte = '\0';
-    printf("ReadBuf: %s", read_buf);
     indexer = strrchr(read_buf, 0x03);
     if (!indexer) {
         return '\0';
