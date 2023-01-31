@@ -17,7 +17,7 @@ void triC_queueMsg(dcl_queue_type *msgQ, msg_type *buffer) {
         abort();
     }
 
-    stpncpy(p->arg, buffer->arg, MSG_LEN - 1);
+    stpncpy(p->argstr, buffer->argstr, MSG_LEN - 1);
     dcl_queue_pushBack(msgQ, p);
 }
 
@@ -31,7 +31,7 @@ int triC_readMsg(dcl_queue_type *msgQ, msg_type *buffer) {
     }
 
     buffer->terminate = p->terminate;
-    strncpy(buffer->arg,p->arg, MSG_LEN - 1);
+    strncpy(buffer->argstr, p->argstr, MSG_LEN - 1);
     free(p);
 
     return 1;

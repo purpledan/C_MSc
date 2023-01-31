@@ -6,12 +6,21 @@
 #define DCL_MSGQUEUE_H
 
 #include <pthread.h>
+#include <stdbool.h>
+#include "dcl_config.h"
 
 /** DCL Message Queue
  * Implements a Message queue with embedded support for pthreads
  * Implementing pthreads is not part of this interface, it is the user's responsibility
  *
  */
+
+/* String Based Msg element for general use */
+typedef struct dcl_strmsg_type {
+    char argstr[DCL_STRMSG_LEN];    // Incoming string based message
+    bool terminate;                 // May be used to signal queue termination
+}dcl_strmsg_type;
+
 
 /* Message element */
 typedef struct dcl_msg {
@@ -37,4 +46,8 @@ void    *dcl_queue_pop(dcl_queue_type *MsgQueue);
 void    dcl_queue_free(dcl_queue_type *MsgQueue);
 void    dcl_queue_print(dcl_queue_type *MsgQueue);
 
+/* String MSG queue Method Functions */
+void dcl_queue_pushStrMsg(dcl_queue_type *MsgQueue, dcl_strmsg_type *buf);
+void dcl_queue_pushStrMsg_front(dcl_queue_type *MsgQueue, dcl_strmsg_type *buf);
+int dcl_queue_popStrMsg(dcl_queue_type *MsgQueue, dcl_strmsg_type *buf);
 #endif //DCL_MSGQUEUE_H

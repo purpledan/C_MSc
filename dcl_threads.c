@@ -14,7 +14,8 @@ void *pumpThread(void *arg) {
     state_triC ( *fsm_triC[numStates] )(state_triC_cluster_type *cluster_in) = {[state_idle] = state_triC_idle,
                                                                                 [state_init] = state_triC_init,
                                                                                 [state_getMsg] = state_triC_getMsg,
-                                                                                [state_action] = state_triC_action};
+                                                                                [state_action] = state_triC_action,
+                                                                                [state_transient] = state_triC_transient};
     state_triC next_state = state_init;
 
     dcl_serialDevice dev_trikC3000 = {

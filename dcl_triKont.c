@@ -159,7 +159,7 @@ void dcl_triC_setsV(dcl_serialDevice *device_in, int startV) {
 }
 void dcl_triC_setTopV(dcl_serialDevice *device_in, int topV) {
     char cmd[TRIC_PRE_BUF] = "";
-    sprintf(cmd, "V%d", topV);
+    sprintf(cmd, "S%dR", topV);
     char read_buf[TRIC_READ_BUF] = "";
     dcl_triC_write(device_in, cmd);
     dcl_triC_read(device_in, read_buf);
@@ -203,7 +203,7 @@ int dcl_triC_read(dcl_serialDevice *device_in, char *read_buf) {
 }
 
 char dcl_triC_parse(char *read_buf, char **ret_data) {
-    printf("Buf: %s\n", read_buf);
+    //printf("Buf: %s\n", read_buf);
     char *indexer = NULL;
     char ret_byte = '\0';
     indexer = strrchr(read_buf, 0x03);

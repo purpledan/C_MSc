@@ -6,7 +6,7 @@
 #define C_MSC_DCL_FSM_TRIKONT_H
 #include <stdbool.h>
 #include "dcl_triKont.h"
-#include "dcl_msg_triKont.h"
+#include "dcl_fsm.h"
 
 typedef enum state_triC {state_init,
                          state_action,
@@ -34,4 +34,5 @@ state_triC state_triC_init(state_triC_cluster_type *cluster_in);
 state_triC state_triC_idle(state_triC_cluster_type *cluster_in);
 state_triC state_triC_getMsg(state_triC_cluster_type *cluster_in);
 state_triC state_triC_action(state_triC_cluster_type *cluster_in);
+state_triC state_triC_transient(state_triC_cluster_type *cluster_in);
 #endif //C_MSC_DCL_FSM_TRIKONT_H

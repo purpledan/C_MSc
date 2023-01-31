@@ -10,7 +10,7 @@
 #define MSG_LEN 32
 
 typedef struct msg_type {
-    char arg[MSG_LEN];
+    char argstr[MSG_LEN];
     int terminate;
 }msg_type;
 

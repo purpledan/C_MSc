@@ -5,6 +5,7 @@
 #include "dcl_msgQueue.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 void dcl_queue_init(dcl_queue_type *MsgQueue) {
     MsgQueue->first     = NULL;
@@ -88,4 +89,48 @@ void dcl_queue_print(dcl_queue_type *MsgQueue) {
         indexer = indexer->next;
     }
     printf("LAST\n");
+}
+
+void dcl_queue_pushStrMsg(dcl_queue_type *MsgQueue, dcl_strmsg_type *buf) {
+    dcl_strmsg_type *p;
+
+    p = malloc( sizeof(dcl_strmsg_type) );
+    if (!p) {
+        perror("Malloc failed for new strmsg in queue");
+        abort();
+    }
+
+    strncpy(p->argstr, buf->argstr, DCL_STRMSG_LEN - 1);
+    dcl_queue_pushBack(MsgQueue, p);
+}
+
+void dcl_queue_pushStrMsg_front(dcl_queue_type *MsgQueue, dcl_strmsg_type *buf) {
+    dcl_strmsg_type *p;
+
+    p = malloc( sizeof(dcl_strmsg_type) );
+    if (!p) {
+        perror("Malloc failed for new strmsg in queue");
+        abort();
+    }
+
+    strncpy(p->argstr, buf->argstr, DCL_STRMSG_LEN - 1);
+    dcl_queue_pushFront(MsgQueue, p);
+}
+
+int dcl_queue_popStrMsg(dcl_queue_type *MsgQueue, dcl_strmsg_type *buf) {
+    if (!MsgQueue->length) {
+        return 0;
+    }
+
+    dcl_strmsg_type *p = dcl_queue_pop(MsgQueue);
+    if (!p) {
+        fprintf(stderr, "Read NULL from Msg Queue\n");
+        return -1;
+    }
+
+    buf->terminate = p->terminate;
+    strncpy(buf->argstr, p->argstr, DCL_STRMSG_LEN - 1);
+    free(p);
+
+    return (int)strlen(buf->argstr);    //CAST: DCL_STRMSG_LEN is tiny compared to MAX_USIGNED_LONG
 }
