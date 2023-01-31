@@ -18,21 +18,20 @@ typedef enum state_triC {state_init,
                          numStates
 } state_triC;
 
-typedef struct state_triC_cluster {
-    dcl_serialDevice *device_in;
-    dcl_queue_type *queue;
-    msg_type msg_buffer;
+typedef struct triC_fsm_cluster {
+    dcl_fsm_cluster_type *fsm;          // Generic FSM cluster
+    dcl_serialDevice *device_in;        // Generic Device in
+    dcl_triC_status *status_in;         // TriC status pointer from device_in
     char nxt_cmd[4];
     int arg1;
     int arg2;
-    bool action_busy;   // Pump is performing an action
-}state_triC_cluster_type;
+}triC_fsm_cluster;
 
-void state_triC_create(void *arg);
-
-state_triC state_triC_init(state_triC_cluster_type *cluster_in);
-state_triC state_triC_idle(state_triC_cluster_type *cluster_in);
-state_triC state_triC_getMsg(state_triC_cluster_type *cluster_in);
-state_triC state_triC_action(state_triC_cluster_type *cluster_in);
-state_triC state_triC_transient(state_triC_cluster_type *cluster_in);
+//state_triC state_triC_create(void *arg);
+void state_triC_fsmSetup(triC_fsm_cluster *cluster_in);
+state_triC state_triC_init(triC_fsm_cluster *cluster_in);
+state_triC state_triC_idle(triC_fsm_cluster *cluster_in);
+state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in);
+state_triC state_triC_action(triC_fsm_cluster *cluster_in);
+state_triC state_triC_transient(triC_fsm_cluster *cluster_in);
 #endif //C_MSC_DCL_FSM_TRIKONT_H
