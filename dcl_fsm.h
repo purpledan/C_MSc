@@ -12,7 +12,8 @@
 enum {  MSGERR, // Pop returned NULL
         MSGEMP, // Popped MSG with empty string
         MSGRET, // Popped MSG with contents
-        NOMSGS  // No MSG to pop, ie Queue empty
+        NOMSGS, // No MSG to pop, ie Queue empty
+        FSMEND  // Request for FSM termination
         };
 
 /* FSM General cluster */
@@ -24,8 +25,14 @@ typedef struct dcl_fsm_cluster {
 
 /** Dequeues message from multithreaded queue
  *
- * @param clusterIn
+ * @param cluster_in
  * @return
  */
-int dcl_fsm_getMsg(dcl_fsm_cluster_type *clusterIn);
+int dcl_fsm_getMsg(dcl_fsm_cluster_type *cluster_in);
+
+int dcl_fsm_thr_getMsg(dcl_fsm_cluster_type *cluster_in);
+int dcl_fsm_thr_timed_getMsg(dcl_fsm_cluster_type *cluster_in);
+
+int dcl_thr_sendMsg(dcl_queue_type *fsm_queue, dcl_strmsg_type *buf_in);
+int dcl_thr_timed_sendMsg(dcl_queue_type *fsm_queue, dcl_strmsg_type *buf_in);
 #endif //C_MSC_DCL_FSM_H

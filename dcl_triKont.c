@@ -4,6 +4,16 @@
 
 #include "dcl_triKont.h"
 
+void dcl_triC_setup(dcl_serialDevice *device, char name[], char serial_addr[], int addr_switch) {
+    static dcl_triC_status internal;
+    internal.address = addr_switch;
+    device->dev_status = &internal;
+
+    strncpy(device->instrument_name, name, DEV_NAME_LEN - 1);
+    strncpy(device->dev_name, serial_addr, INSTRUMENT_NAME_LEN - 1);
+
+}
+
 void dcl_triC_init(dcl_serialDevice *device_in) {
     char read_buf[TRIC_READ_BUF] = "";
     dcl_triC_write(device_in, "ZR");

@@ -6,7 +6,6 @@
 
 extern pthread_mutex_t pumpA_mutex;
 extern pthread_cond_t pumpA_alert;
-extern dcl_triC_status pumpA_status;
 extern dcl_queue_type worker_queue;
 
 void *pumpThread(void *arg) {
@@ -18,11 +17,12 @@ void *pumpThread(void *arg) {
                                                                                 [state_transient] = state_triC_transient};
     state_triC next_state = state_init;
 
-    dcl_serialDevice dev_trikC3000 = {
-            .instrument_name = "TriKont Syringe",
-            .dev_name = "/dev/ttyUSB0",
-            .dev_status = &pumpA_status,
-    };
+    dcl_serialDevice dev_trikC3000;
+    dcl_triC_setup(&dev_trikC3000,
+                   "TriKont Syringe",
+                   "/dev/ttyUSB0",
+                   0);
+
     dcl_fsm_cluster_type fsm_cluster = {
             .queue = &worker_queue,
     };

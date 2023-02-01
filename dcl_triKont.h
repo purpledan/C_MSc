@@ -27,6 +27,8 @@ typedef struct dcl_triC_status{
     char statusByte;                // Status Byte
 } dcl_triC_status;
 
+/* General setup function */
+void dcl_triC_setup(dcl_serialDevice *device, char name[], char serial_addr[], int addr_switch);
 /* Device specific functions */
 void dcl_triC_init(dcl_serialDevice *device_in);
 void dcl_triC_setValve(dcl_serialDevice *device_in, int valveNo);

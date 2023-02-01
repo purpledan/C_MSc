@@ -23,8 +23,8 @@ typedef struct dcl_strmsg_type {
 
 
 /* Message element */
-typedef struct dcl_msg {
-    struct  dcl_msg *next;  // The element next in line from the front of the queue
+typedef struct dcl_msg_type {
+    struct  dcl_msg_type *next;  // The element next in line from the front of the queue
     void    *data;
 }dcl_msg_type;
 
