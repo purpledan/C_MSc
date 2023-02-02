@@ -129,7 +129,6 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
         printf("Valve move to: %d\n", cluster_in->arg1);
         dcl_triC_setValve(cluster_in->device_in, cluster_in->arg1);
         cluster_in->fsm->opt_field &= ~ARGSEL;
-        cluster_in->fsm->opt_field |= SPBUSY;
     } else {
         /* Select direction of movement */
         if ( !strcmp("PSH", cluster_in->nxt_cmd) ) {
@@ -140,9 +139,11 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
             dcl_triC_aspirate(cluster_in->device_in, cluster_in->arg2);
         } else {
             printf("CMD made no sense\n");
-            return state_idle;
+            return state_critical;
         }
     }
+    cluster_in->fsm->opt_field |= SPBUSY;
+    return state_idle;
 }
 
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in) {
