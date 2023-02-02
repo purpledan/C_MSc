@@ -56,12 +56,37 @@ state_triC state_triC_init(triC_fsm_cluster *cluster_in) {
 }
 
 state_triC state_triC_idle(triC_fsm_cluster *cluster_in) {
-    printf("Idle\n");
-    return state_getMsg;
+    printf("Idle:\n");
+    //state_triC next_state;
+
+    if ( cluster_in->fsm->opt_field & ACTBSY ) {
+        /* An action is being performed */
+        if ( cluster_in->fsm->opt_field & SPBUSY ) {
+            /* and the pump is busy */
+            return state_transient;
+        }
+        return state_action;
+    } else {
+        /* There is no action being performed */
+        /* Is there a message ready for us? */
+        if ( cluster_in->fsm->opt_field & MSGRDY ) {
+            /* Read Msg and perform action */
+            return state_action;
+        } else {
+            /* There is no MSG in the buffer ready */
+            if (cluster_in->fsm->opt_field & QEMPTY ) {
+                /* Queue is empty, we goto wait TODO: add wait state*/
+                return state_idle;
+            } else {
+                /* We get a new msg from the queue */
+                return state_getMsg;
+            }
+        }
+    }
 }
 
 state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in) {
-    printf("Getting Msg\n");
+    printf("Getting Msg:\n");
 
     int ret_flag = dcl_fsm_thr_getMsg(cluster_in->fsm);
 
@@ -83,20 +108,41 @@ state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in) {
 }
 
 state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
-    printf("Executing MSG:\n");
-
-    if (!strcmp("PSH", cluster_in->nxt_cmd)) {
-        state_triC_transient(cluster_in);
-        dcl_triC_setValve(cluster_in->device_in, cluster_in->arg1);
-        state_triC_transient(cluster_in);
-        dcl_triC_dispense(cluster_in->device_in, cluster_in->arg2);
-    } else if (!strcmp("PUL", cluster_in->nxt_cmd)) {
-        state_triC_transient(cluster_in);
-        dcl_triC_setValve(cluster_in->device_in, cluster_in->arg1);
-        state_triC_transient(cluster_in);
-        dcl_triC_aspirate(cluster_in->device_in, cluster_in->arg2);
+    printf("Performing: ");
+    /* If there is no action being performed, we start a new one */
+    if ( !(cluster_in->fsm->opt_field & ACTBSY) ) {
+        cluster_in->fsm->opt_field |= ACTBSY;
+        aux_triC_parseMsg(cluster_in);
+        cluster_in->fsm->opt_field &= ~MSGRDY;
+        /* It is only logical that the valve be at the correct
+         * position before the plunger starts moving, it might
+         * be logical that the plunger moves before the correct
+         * valve position, but such logic breaks the rules of
+         * causality
+         * */
+        cluster_in->fsm->opt_field |= ARGSEL;
     }
-    return state_getMsg;
+
+    dcl_triC_getStatus(cluster_in->device_in);
+    /* At this point an action is surely being performed */
+    if ( cluster_in->fsm->opt_field & ARGSEL ) {
+        printf("Valve move to: %d\n", cluster_in->arg1);
+        dcl_triC_setValve(cluster_in->device_in, cluster_in->arg1);
+        cluster_in->fsm->opt_field &= ~ARGSEL;
+        cluster_in->fsm->opt_field |= SPBUSY;
+    } else {
+        /* Select direction of movement */
+        if ( !strcmp("PSH", cluster_in->nxt_cmd) ) {
+            printf("Dispensing %d\n", cluster_in->arg2);
+            dcl_triC_dispense(cluster_in->device_in, cluster_in->arg2);
+        } else if ( !strcmp("PUL", cluster_in->nxt_cmd) ) {
+            printf("Aspirating %d\n", cluster_in->arg2);
+            dcl_triC_aspirate(cluster_in->device_in, cluster_in->arg2);
+        } else {
+            printf("CMD made no sense\n");
+            return state_idle;
+        }
+    }
 }
 
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in) {
@@ -137,4 +183,11 @@ int ext_triC_updateStatus(triC_fsm_cluster *cluster_in) {
         }
     }
     return ret_flag;
+}
+
+void aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
+    sscanf(cluster_in->fsm->msg_buf.argstr, "%[A-Z],%d,%d",
+           cluster_in->nxt_cmd,
+           &cluster_in->arg1,
+           &cluster_in->arg2);
 }

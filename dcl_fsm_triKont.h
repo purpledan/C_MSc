@@ -12,7 +12,9 @@
 #define QEMPTY  0b00000010      // Queue empty
 #define EXTSTA  0b00000100      // External status linked to FSM
 #define INCPLT  0b00001000      // Init state complete
-#define MSGRDY  0b00010000      // Message in internal buffer
+#define MSGRDY  0b00010000      // A MSG is ready for action
+#define ARGSEL  0b00100000      // True for Valve Mov, False for Plunger Mov
+#define ACTBSY  0b01000000      // FSM is busy executing MSG in buffer
 
 typedef enum state_triC {state_init,
                          state_action,
@@ -49,4 +51,5 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in);
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in);
 
 int ext_triC_updateStatus(triC_fsm_cluster *cluster_in);
+void aux_triC_parseMsg(triC_fsm_cluster *cluster_in);
 #endif //C_MSC_DCL_FSM_TRIKONT_H
