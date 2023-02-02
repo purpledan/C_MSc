@@ -4,13 +4,24 @@
 
 #include "dcl_triKont.h"
 
-void dcl_triC_setup(dcl_serialDevice *device, char name[], char serial_addr[], int addr_switch) {
+dcl_serialDevice *dcl_triC_setup(char name[], char serial_addr[], int addr_switch) {
+    static dcl_serialDevice dev;
     static dcl_triC_status internal;
     internal.address = addr_switch;
-    device->dev_status = &internal;
+    dev.dev_status = &internal;
 
-    strncpy(device->instrument_name, name, DEV_NAME_LEN - 1);
-    strncpy(device->dev_name, serial_addr, INSTRUMENT_NAME_LEN - 1);
+    strncpy(dev.instrument_name, name, DEV_NAME_LEN - 1);
+    strncpy(dev.dev_name, serial_addr, INSTRUMENT_NAME_LEN - 1);
+
+    printf("Connecting to %s\n", dev.instrument_name);
+    /* Open a fd to a device, device is critical so should abort if not opened */
+    if ( !dcl_serial_setup(&dev) ) {
+        printf("Connection to %s successful\n", dev.instrument_name);
+    } else {
+        return NULL;
+    }
+
+    return &dev;
 
 }
 

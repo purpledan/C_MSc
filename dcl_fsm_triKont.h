@@ -28,7 +28,7 @@ typedef struct triC_fsm_cluster {
 }triC_fsm_cluster;
 
 //state_triC state_triC_create(void *arg);
-void state_triC_fsmSetup(triC_fsm_cluster *cluster_in);
+triC_fsm_cluster *state_triC_fsmSetup(dcl_queue_type *fsm_msg_queue, dcl_serialDevice *triC_dev);
 state_triC state_triC_init(triC_fsm_cluster *cluster_in);
 state_triC state_triC_idle(triC_fsm_cluster *cluster_in);
 state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in);

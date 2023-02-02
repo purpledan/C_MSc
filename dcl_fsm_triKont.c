@@ -10,10 +10,19 @@ void state_triC_fsmCreate(void *argstr) {
 }
 */
 
-void state_triC_fsmSetup(triC_fsm_cluster *cluster_in) {
-    cluster_in->status_in = ( (dcl_triC_status *)(cluster_in->device_in->dev_status) );
+triC_fsm_cluster *state_triC_fsmSetup(dcl_queue_type *fsm_msg_queue, dcl_serialDevice *triC_dev) {
+    static dcl_fsm_cluster_type fsm_cluster;
+    fsm_cluster.queue = fsm_msg_queue;
+
+    static triC_fsm_cluster thread_cluster;
+    thread_cluster.fsm = &fsm_cluster;
+    thread_cluster.device_in = triC_dev;
+
+    thread_cluster.status_in = ( (dcl_triC_status *)(triC_dev->dev_status) );
     printf("Checking FSM Cluster\n");
-    printf("Pump Address is %d\n", cluster_in->status_in->address);
+    printf("Pump Address is %d\n", thread_cluster.status_in->address);
+
+    return &thread_cluster;
 }
 
 state_triC state_triC_init(triC_fsm_cluster *cluster_in) {
