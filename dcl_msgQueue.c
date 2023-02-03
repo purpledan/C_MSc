@@ -100,6 +100,7 @@ void dcl_queue_pushStrMsg(dcl_queue_type *MsgQueue, dcl_strmsg_type *buf) {
         abort();
     }
 
+    p->terminate = buf->terminate;
     strncpy(p->argstr, buf->argstr, DCL_STRMSG_LEN - 1);
     dcl_queue_pushBack(MsgQueue, p);
 }
@@ -113,6 +114,7 @@ void dcl_queue_pushStrMsg_front(dcl_queue_type *MsgQueue, dcl_strmsg_type *buf) 
         abort();
     }
 
+    p->terminate = buf->terminate;
     strncpy(p->argstr, buf->argstr, DCL_STRMSG_LEN - 1);
     dcl_queue_pushFront(MsgQueue, p);
 }

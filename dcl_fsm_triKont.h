@@ -10,7 +10,7 @@
 /* Bitfield defines for internal status */
 #define SPBUSY  0b00000001      // Syringe pump is busy performing an action
 #define QEMPTY  0b00000010      // Queue empty
-#define EXTSTA  0b00000100      // External status linked to FSM
+#define LSTACT  0b00000100      // Action performing last move
 #define INCPLT  0b00001000      // Init state complete
 #define MSGRDY  0b00010000      // A MSG is ready for action
 #define ARGSEL  0b00100000      // True for Valve Mov, False for Plunger Mov
@@ -22,9 +22,9 @@ typedef enum state_triC {state_init,
                          state_idle,
                          state_getMsg,
                          state_updateStat,
-                         state_terminate,   // TODO: Add to array
+                         state_terminate,
                          state_exit,
-                         state_critical,    // TODO: Add to array
+                         state_critical,
                          numStates
 } state_triC;
 
@@ -37,6 +37,7 @@ typedef struct triC_fsm_cluster {
     char nxt_cmd[4];
     int arg1;
     int arg2;
+    bool enable_external;               // Enable link to external status
 }triC_fsm_cluster;
 
 //state_triC state_triC_create(void *arg);
@@ -49,7 +50,8 @@ state_triC state_triC_idle(triC_fsm_cluster *cluster_in);
 state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in);
 state_triC state_triC_action(triC_fsm_cluster *cluster_in);
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in);
-
+state_triC state_triC_critical(triC_fsm_cluster *cluster_in);
+state_triC state_triC_terminate(triC_fsm_cluster *cluster_in);
 int ext_triC_updateStatus(triC_fsm_cluster *cluster_in);
 void aux_triC_parseMsg(triC_fsm_cluster *cluster_in);
 #endif //C_MSC_DCL_FSM_TRIKONT_H

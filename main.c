@@ -27,6 +27,11 @@ int main() {
     strcpy(buffer.argstr, "PSH,6,3000\0");
     dcl_thr_sendMsg(&worker_queue, &buffer);
 
+    //Terminate
+    buffer.terminate = 1;
+    strcpy(buffer.argstr, "");
+    dcl_thr_sendMsg(&worker_queue, &buffer);
+
     int status;
     pthread_t worker_ID;
     status = pthread_create(&worker_ID, NULL, pumpThread, NULL);

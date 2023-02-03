@@ -7,4 +7,4 @@ add_executable(C_MSc main.c dcl_msgQueue.c dcl_msgQueue.h dcl_serial.c dcl_seria
 #add_executable(TST_MsgQueue.c TST_MsgQueue.h)
 # Optimise the release build only, show all build steps when debug
 set(CMAKE_C_FLAGS_DEBUG  "-O0 -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address")
-#set(CMAKE_C_FLAGS_RELEASE "-O3")
+#set(CMAKE_C_FLAGS_RELEASE "-O2")

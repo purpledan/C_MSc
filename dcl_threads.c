@@ -13,7 +13,9 @@ void *pumpThread(void *arg) {
                                                                                 [state_init] = state_triC_init,
                                                                                 [state_getMsg] = state_triC_getMsg,
                                                                                 [state_action] = state_triC_action,
-                                                                                [state_transient] = state_triC_transient};
+                                                                                [state_transient] = state_triC_transient,
+                                                                                [state_critical] = state_triC_critical,
+                                                                                [state_terminate] = state_triC_terminate};
     state_triC next_state = state_init;
 
     dcl_serialDevice *dev_trikC3000 = dcl_triC_setup("TriKont Syringe",
@@ -32,15 +34,7 @@ void *pumpThread(void *arg) {
     while (next_state != state_exit) {
         next_state = fsm_triC[next_state](thread_cluster);
     }
-    /*
-    pthread_mutex_lock(&pumpA_mutex);
-    pthread_mutex_lock(&worker_queue.mutex);
-    */
 
-    printf("Valve: %d\n", thread_cluster->status_in->valve );
-    printf("Plunger: %d\n", thread_cluster->status_in->plunger );
-    printf("TopV: %d\n", thread_cluster->status_in->topV );
-    printf("Init?: %b\n", thread_cluster->status_in->initialised );
     dcl_serial_close(dev_trikC3000);
     return 0;
 }

@@ -28,11 +28,11 @@ triC_fsm_cluster *state_triC_fsmSetup(dcl_queue_type *fsm_msg_queue,
     fsm_cluster.opt_field = '\0';
 
     if (ext_status) {
-        fsm_cluster.opt_field |= EXTSTA;    // Link to external status available
+        thread_cluster.enable_external = true; // Link to external status available
         thread_cluster.external = ext_status;
         thread_cluster.ext_mutex = ext_mutex;
     } else {
-        fsm_cluster.opt_field &= ~EXTSTA;
+        thread_cluster.enable_external = false;
     }
     return &thread_cluster;
 }
@@ -57,7 +57,6 @@ state_triC state_triC_init(triC_fsm_cluster *cluster_in) {
 
 state_triC state_triC_idle(triC_fsm_cluster *cluster_in) {
     printf("Idle:\n");
-    //state_triC next_state;
 
     if ( cluster_in->fsm->opt_field & ACTBSY ) {
         /* An action is being performed */
@@ -121,6 +120,7 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
          * causality
          * */
         cluster_in->fsm->opt_field |= ARGSEL;
+        cluster_in->fsm->opt_field &= ~LSTACT;
     }
 
     dcl_triC_getStatus(cluster_in->device_in);
@@ -130,6 +130,7 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
         dcl_triC_setValve(cluster_in->device_in, cluster_in->arg1);
         cluster_in->fsm->opt_field &= ~ARGSEL;
     } else {
+        cluster_in->fsm->opt_field |= LSTACT;
         /* Select direction of movement */
         if ( !strcmp("PSH", cluster_in->nxt_cmd) ) {
             printf("Dispensing %d\n", cluster_in->arg2);
@@ -142,46 +143,73 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
             return state_critical;
         }
     }
+    /* The SP should be busy moving now */
     cluster_in->fsm->opt_field |= SPBUSY;
     return state_idle;
 }
 
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in) {
     printf("Transient:\n");
+    //int ret_flag;
 
-    bool transient = 0;
-    do {
-        dcl_triC_getStatus(cluster_in->device_in);
-        if (cluster_in->status_in->statusByte == '@') {
-            sleep(1);
-            transient = true;
-        } else {
-            transient = false;
-        }
-    } while ( transient );
-    return state_action;
+    /* Pump in transient, get status of pump */
+    dcl_triC_getStatus(cluster_in->device_in);
+    if ( cluster_in->status_in->statusByte == '@' ) {
+        cluster_in->fsm->opt_field |= SPBUSY;
+    } else {
+        cluster_in->fsm->opt_field &= ~SPBUSY;
+    }
+
+    if ( (cluster_in->fsm->opt_field & LSTACT) && !(cluster_in->fsm->opt_field & SPBUSY) ) {
+        cluster_in->fsm->opt_field &= ~ACTBSY;
+    }
+
+    /* We may use this downtime to update the external status */
+    ext_triC_updateStatus(cluster_in);
+
+    /* Slow down mechanism so that we don't consume a billion CPU cycles */
+    struct timespec halt = {
+            .tv_nsec = 128000000,   // 128ms?
+    };
+    nanosleep(&halt, NULL);
+
+    return state_idle;
+}
+
+state_triC state_triC_critical(triC_fsm_cluster *cluster_in) {
+    fprintf(stderr, "Critical pump FSM failure\n");
+    abort();
+}
+
+state_triC state_triC_terminate(triC_fsm_cluster *cluster_in) {
+    printf("Terminating Pump FSM:\n");
+    return state_exit;
 }
 
 int ext_triC_updateStatus(triC_fsm_cluster *cluster_in) {
     int ret_flag;
-    if ( !(cluster_in->fsm->opt_field & INCPLT) ) {
-        ret_flag = pthread_mutex_lock(cluster_in->ext_mutex);
-        cluster_in->external->initialised = cluster_in->status_in->initialised;
-        cluster_in->external->statusByte = cluster_in->status_in->statusByte;
-        cluster_in->external->topV = cluster_in->status_in->topV;
-        cluster_in->external->plunger = cluster_in->status_in->plunger;
-        cluster_in->external->valve = cluster_in->status_in->valve;
-        pthread_mutex_unlock(cluster_in->ext_mutex);
-    } else {
-        ret_flag = pthread_mutex_trylock(cluster_in->ext_mutex);
-        cluster_in->external->initialised = cluster_in->status_in->initialised;
-        cluster_in->external->statusByte = cluster_in->status_in->statusByte;
-        cluster_in->external->topV = cluster_in->status_in->topV;
-        cluster_in->external->plunger = cluster_in->status_in->plunger;
-        cluster_in->external->valve = cluster_in->status_in->valve;
-        if (!ret_flag) {
+    if ( cluster_in->enable_external ) {
+        if ( !(cluster_in->fsm->opt_field & INCPLT) ) {
+            ret_flag = pthread_mutex_lock(cluster_in->ext_mutex);
+            cluster_in->external->initialised = cluster_in->status_in->initialised;
+            cluster_in->external->statusByte = cluster_in->status_in->statusByte;
+            cluster_in->external->topV = cluster_in->status_in->topV;
+            cluster_in->external->plunger = cluster_in->status_in->plunger;
+            cluster_in->external->valve = cluster_in->status_in->valve;
             pthread_mutex_unlock(cluster_in->ext_mutex);
+        } else {
+            ret_flag = pthread_mutex_trylock(cluster_in->ext_mutex);
+            cluster_in->external->initialised = cluster_in->status_in->initialised;
+            cluster_in->external->statusByte = cluster_in->status_in->statusByte;
+            cluster_in->external->topV = cluster_in->status_in->topV;
+            cluster_in->external->plunger = cluster_in->status_in->plunger;
+            cluster_in->external->valve = cluster_in->status_in->valve;
+            if (!ret_flag) {
+                pthread_mutex_unlock(cluster_in->ext_mutex);
+            }
         }
+    } else {
+        ret_flag = 0;
     }
     return ret_flag;
 }

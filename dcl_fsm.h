@@ -5,6 +5,7 @@
 #ifndef C_MSC_DCL_FSM_H
 #define C_MSC_DCL_FSM_H
 #include <pthread.h>
+#include <time.h>
 #include "dcl_config.h"
 #include "dcl_msgQueue.h"
 
