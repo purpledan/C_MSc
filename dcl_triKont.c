@@ -178,6 +178,13 @@ void dcl_triC_setsV(dcl_serialDevice *device_in, int startV) {
     dcl_triC_write(device_in, cmd);
     dcl_triC_read(device_in, read_buf);
 }
+void dcl_triC_setSpeed(dcl_serialDevice *device_in, int topV) {
+    char cmd[TRIC_PRE_BUF] = "";
+    sprintf(cmd, "S%dR", topV);
+    char read_buf[TRIC_READ_BUF] = "";
+    dcl_triC_write(device_in, cmd);
+    dcl_triC_read(device_in, read_buf);
+}
 void dcl_triC_setTopV(dcl_serialDevice *device_in, int topV) {
     char cmd[TRIC_PRE_BUF] = "";
     sprintf(cmd, "S%dR", topV);

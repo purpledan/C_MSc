@@ -48,6 +48,7 @@ void dcl_triC_setsV(dcl_serialDevice *device_in, int startV);
 void dcl_triC_setTopV(dcl_serialDevice *device_in, int topV);
 void dcl_triC_setSlope(dcl_serialDevice *device_in, int accSlope);
 void dcl_triC_setRes(dcl_serialDevice *device_in, int resolution);
+void dcl_triC_setSpeed(dcl_serialDevice *device_in, int topV);
 /* Helper functions */
 char dcl_triC_parse(char *read_buf, char **ret_data);
 /* Raw IO functions */

@@ -7,25 +7,36 @@
 #include <stdbool.h>
 #include "dcl_triKont.h"
 #include "dcl_fsm.h"
-/* Bitfield defines for internal status */
-#define SPBUSY  0b00000001      // Syringe pump is busy performing an action
-#define QEMPTY  0b00000010      // Queue empty
-#define LSTACT  0b00000100      // Action performing last move
-#define INCPLT  0b00001000      // Init state complete
-#define MSGRDY  0b00010000      // A MSG is ready for action
-#define ARGSEL  0b00100000      // True for Valve Mov, False for Plunger Mov
-#define ACTBSY  0b01000000      // FSM is busy executing MSG in buffer
+/* Bitfield defines for triC_fsm status */
+#define MSGRDY  0b00000001      // A MSG is ready for action
+#define ACTBSY  0b00000010      // FSM is busy executing MSG in buffer
+#define SPBUSY  0b00000100      // Syringe pump is busy performing an action
+#define LSTACT  0b00001000      // Action performing last move
+#define ARGSEL  0b00010000      // True for Valve Mov, False for Plunger Mov
 
-typedef enum state_triC {state_init,
-                         state_action,
-                         state_transient,
-                         state_idle,
-                         state_getMsg,
-                         state_updateStat,
-                         state_terminate,
-                         state_exit,
-                         state_critical,
-                         numStates
+/* Cmd enum */
+typedef enum action_triC {
+    action_pul,                 // PUL string command
+    action_psh,                 // PSH string command
+    action_set,                 // SET string command
+    action_err                  // Parse failure
+} action_triC;
+
+typedef enum setting_triC {
+    setting_speed
+}setting_triC;
+
+typedef enum state_triC {
+    state_init,
+    state_action,
+    state_transient,
+    state_idle,
+    state_getMsg,
+    state_updateStat,
+    state_terminate,
+    state_exit,
+    state_critical,
+    numStates
 } state_triC;
 
 typedef struct triC_fsm_cluster {
@@ -34,9 +45,11 @@ typedef struct triC_fsm_cluster {
     dcl_triC_status *status_in;         // TriC status pointer from device_in
     pthread_mutex_t *ext_mutex;         // Link to external status mutex
     dcl_triC_status *external;          // Link to external status
-    char nxt_cmd[4];
+    action_triC nxt_cmd;
     int arg1;
     int arg2;
+    char state_field;
+    bool init_complete;                 // Init completed
     bool enable_external;               // Enable link to external status
 }triC_fsm_cluster;
 
@@ -54,4 +67,8 @@ state_triC state_triC_critical(triC_fsm_cluster *cluster_in);
 state_triC state_triC_terminate(triC_fsm_cluster *cluster_in);
 int ext_triC_updateStatus(triC_fsm_cluster *cluster_in);
 void aux_triC_parseMsg(triC_fsm_cluster *cluster_in);
+void action_triC_sel(triC_fsm_cluster *cluster_in);
+void action_triC_psh(triC_fsm_cluster *cluster_in);
+void action_triC_pul(triC_fsm_cluster *cluster_in);
+void action_triC_set(triC_fsm_cluster *cluster_in);
 #endif //C_MSC_DCL_FSM_TRIKONT_H

@@ -22,6 +22,8 @@ typedef struct dcl_fsm_cluster {
     dcl_queue_type      *queue;         // Queue used for FSM communication by main thread
     dcl_strmsg_type     msg_buf;        // Buffer to hold read messages from queue
     char                opt_field;      // Bit field for internal FSM status flags
+    bool                queue_empty;    // True if queue is empty, set by getMsg functions
+    bool                fsm_terminate;  // True if termination request was received by getMsg
 } dcl_fsm_cluster_type;
 
 /** Dequeues message from multithreaded queue

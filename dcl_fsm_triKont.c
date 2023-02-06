@@ -20,6 +20,7 @@ triC_fsm_cluster *state_triC_fsmSetup(dcl_queue_type *fsm_msg_queue,
     static triC_fsm_cluster thread_cluster;
     thread_cluster.fsm = &fsm_cluster;
     thread_cluster.device_in = triC_dev;
+    thread_cluster.init_complete = false;
 
     thread_cluster.status_in = ( (dcl_triC_status *)(triC_dev->dev_status) );
     printf("Checking FSM Cluster\n");
@@ -44,14 +45,13 @@ state_triC state_triC_init(triC_fsm_cluster *cluster_in) {
     dcl_triC_getSetup( cluster_in->device_in);
     if ( !cluster_in->status_in->initialised ) {
         dcl_triC_init(cluster_in->device_in);
+        sleep(7);       // TODO: Add way so that state_transient is used instead
     }
 
     ret_flag = ext_triC_updateStatus(cluster_in);
     if (!ret_flag) {
-        cluster_in->fsm->opt_field |= INCPLT;
+        cluster_in->init_complete = true;
     }
-
-    //dcl_triC_setTopV(cluster_in->device_in, 11);
     return state_getMsg;
 }
 
@@ -73,7 +73,7 @@ state_triC state_triC_idle(triC_fsm_cluster *cluster_in) {
             return state_action;
         } else {
             /* There is no MSG in the buffer ready */
-            if (cluster_in->fsm->opt_field & QEMPTY ) {
+            if (cluster_in->fsm->queue_empty) {
                 /* Queue is empty, we goto wait TODO: add wait state*/
                 return state_idle;
             } else {
@@ -98,7 +98,6 @@ state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in) {
             cluster_in->fsm->opt_field |= MSGRDY;
             return state_idle;
         case NOMSGS:
-            cluster_in->fsm->opt_field |= QEMPTY;
             return state_idle;
         case MSGERR:
         default:
@@ -125,26 +124,22 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
 
     dcl_triC_getStatus(cluster_in->device_in);
     /* At this point an action is surely being performed */
-    if ( cluster_in->fsm->opt_field & ARGSEL ) {
-        printf("Valve move to: %d\n", cluster_in->arg1);
-        dcl_triC_setValve(cluster_in->device_in, cluster_in->arg1);
-        cluster_in->fsm->opt_field &= ~ARGSEL;
-    } else {
-        cluster_in->fsm->opt_field |= LSTACT;
-        /* Select direction of movement */
-        if ( !strcmp("PSH", cluster_in->nxt_cmd) ) {
-            printf("Dispensing %d\n", cluster_in->arg2);
-            dcl_triC_dispense(cluster_in->device_in, cluster_in->arg2);
-        } else if ( !strcmp("PUL", cluster_in->nxt_cmd) ) {
-            printf("Aspirating %d\n", cluster_in->arg2);
-            dcl_triC_aspirate(cluster_in->device_in, cluster_in->arg2);
-        } else {
+    switch (cluster_in->nxt_cmd) {
+        case action_pul:
+            action_triC_pul(cluster_in);
+            break;
+        case action_psh:
+            action_triC_psh(cluster_in);
+            break;
+        case action_set:
+            action_triC_set(cluster_in);
+            break;
+        case action_err:
+        default:
             printf("CMD made no sense\n");
             return state_critical;
-        }
     }
-    /* The SP should be busy moving now */
-    cluster_in->fsm->opt_field |= SPBUSY;
+
     return state_idle;
 }
 
@@ -189,7 +184,7 @@ state_triC state_triC_terminate(triC_fsm_cluster *cluster_in) {
 int ext_triC_updateStatus(triC_fsm_cluster *cluster_in) {
     int ret_flag;
     if ( cluster_in->enable_external ) {
-        if ( !(cluster_in->fsm->opt_field & INCPLT) ) {
+        if ( !(cluster_in->init_complete) ) {
             ret_flag = pthread_mutex_lock(cluster_in->ext_mutex);
             cluster_in->external->initialised = cluster_in->status_in->initialised;
             cluster_in->external->statusByte = cluster_in->status_in->statusByte;
@@ -215,8 +210,62 @@ int ext_triC_updateStatus(triC_fsm_cluster *cluster_in) {
 }
 
 void aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
+    char temp_string[8] = "";
+
     sscanf(cluster_in->fsm->msg_buf.argstr, "%[A-Z],%d,%d",
-           cluster_in->nxt_cmd,
+           temp_string,
            &cluster_in->arg1,
            &cluster_in->arg2);
+
+    if (!strcmp("PSH", temp_string)) {
+        cluster_in->nxt_cmd = action_psh;
+    } else if (!strcmp("PUL", temp_string)) {
+        cluster_in->nxt_cmd = action_pul;
+    } else if (!strcmp("SET", temp_string)) {
+        cluster_in->nxt_cmd = action_set;
+    } else {
+        cluster_in->nxt_cmd = action_err;
+    }
+}
+
+void action_triC_sel(triC_fsm_cluster *cluster_in) {
+    printf("Valve move to: %d\n", cluster_in->arg1);
+    dcl_triC_setValve(cluster_in->device_in, cluster_in->arg1);
+    cluster_in->fsm->opt_field &= ~ARGSEL;
+}
+
+void action_triC_psh(triC_fsm_cluster *cluster_in) {
+    if ( cluster_in->fsm->opt_field & ARGSEL ) {
+        action_triC_sel(cluster_in);
+    } else {
+        cluster_in->fsm->opt_field |= LSTACT;
+        printf("Dispensing %d\n", cluster_in->arg2);
+        dcl_triC_dispense(cluster_in->device_in, cluster_in->arg2);
+    }
+    /* The SP should be busy moving now */
+    cluster_in->fsm->opt_field |= SPBUSY;
+}
+void action_triC_pul(triC_fsm_cluster *cluster_in) {
+    if ( cluster_in->fsm->opt_field & ARGSEL ) {
+        action_triC_sel(cluster_in);
+    } else {
+        cluster_in->fsm->opt_field |= LSTACT;
+        printf("Aspirating %d\n", cluster_in->arg2);
+        dcl_triC_aspirate(cluster_in->device_in, cluster_in->arg2);
+    }
+    /* The SP should be busy moving now */
+    cluster_in->fsm->opt_field |= SPBUSY;
+
+}
+
+void action_triC_set(triC_fsm_cluster *cluster_in) {
+    /* No action, only changing a setting */
+    cluster_in->fsm->opt_field &= ~ACTBSY;
+    switch (cluster_in->arg1) {
+        case setting_speed:
+            dcl_triC_setSpeed(cluster_in->device_in, cluster_in->arg2);
+            break;
+        default:
+            break;
+    }
 }

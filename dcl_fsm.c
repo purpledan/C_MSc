@@ -21,6 +21,7 @@ int dcl_fsm_getMsg(dcl_fsm_cluster_type *cluster_in) {
         }
     } else {
         ret_flag = NOMSGS;           // The queue is empty
+        cluster_in->queue_empty = true;
     }
 
     return ret_flag;

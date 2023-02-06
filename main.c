@@ -22,9 +22,15 @@ int main() {
             .argstr = "PUL,1,1500\0"
     };
     dcl_thr_sendMsg(&worker_queue, &buffer);
+    strcpy(buffer.argstr, "SET,0,16\0");
+    dcl_thr_sendMsg(&worker_queue, &buffer);
     strcpy(buffer.argstr, "PUL,2,1500\0");
     dcl_thr_sendMsg(&worker_queue, &buffer);
+    strcpy(buffer.argstr, "SET,0,9\0");
+    dcl_thr_sendMsg(&worker_queue, &buffer);
     strcpy(buffer.argstr, "PSH,6,3000\0");
+    dcl_thr_sendMsg(&worker_queue, &buffer);
+    strcpy(buffer.argstr, "SET,0,11\0");
     dcl_thr_sendMsg(&worker_queue, &buffer);
 
     //Terminate
