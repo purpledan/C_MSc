@@ -18,29 +18,25 @@ int main() {
     dcl_queue_init(&worker_queue);
     // Test MSG
     dcl_strmsg_type buffer = {
-            .terminate = 0,
+            .terminate = 1,
             .argstr = "PUL,1,1500\0"
     };
     dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "SET,0,16\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "PUL,2,1500\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "SET,0,9\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "PSH,6,3000\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "SET,0,11\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-
-    //Terminate
-    buffer.terminate = 1;
-    strcpy(buffer.argstr, "");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
 
     int status;
-    pthread_t worker_ID;
+
+    pthread_t worker_ID, parser_ID;
     status = pthread_create(&worker_ID, NULL, pumpThread, NULL);
+    if (status) {
+        printf("Thread Fuckup, %d\n", status);
+    }
+
+    status = pthread_create(&parser_ID, NULL, parserThread, NULL);
+    if (status) {
+        printf("Thread Fuckup, %d\n", status);
+    }
+
+    status = pthread_join(parser_ID, NULL);
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }
