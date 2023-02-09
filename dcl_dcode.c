@@ -28,23 +28,26 @@ state_dcode state_dcodeFsm_init(dcode_cluster *cluster_in) {
 }
 
 state_dcode state_dcodeFsm_scan(dcode_cluster *cluster_in) {
-    char *string_p = NULL;
-    string_p = fgets(cluster_in->file.line_buf,
-                     DCL_DCODE_MAXLINE_LEN - 1,
-                     cluster_in->file.file_pointer);
-    cluster_in->file.line_no++;
-    if (!string_p) {
+    char temp_string[DCL_DCODE_MAXLINE_LEN];
+    if ( !fgets(temp_string, DCL_DCODE_MAXLINE_LEN - 1, cluster_in->file.file_pointer) ) {
         cluster_in->fsm->opt_field |= SCNCMP;
         return state_dcode_exit;
-    } else if ( strchr(string_p, '#') ) {
-        return state_dcode_scan;
     }
-    printf("%s", string_p);
+    dcode_rem_wSpace(cluster_in->file.line_buf, temp_string);
+    dcode_rem_comments(cluster_in->file.line_buf);
 
-    if ( (cluster_in->file.selector = strchr(string_p, '!')) ) {
-        return state_dcode_blkStart;
-    } else if ( (cluster_in->file.selector = strchr(string_p, '@')) ) {
-        return state_dcode_exit;
+    printf("Read: %s\n", temp_string);
+    printf("to: %s\n", cluster_in->file.line_buf);
+
+    cluster_in->file.line_no++;
+
+    switch (*cluster_in->file.line_buf) {
+        case '!':
+            return state_dcode_blkStart;
+        case '@':
+            return state_dcode_blkEnd;
+        default:
+            break;
     }
 
     switch (cluster_in->block) {
@@ -61,12 +64,12 @@ state_dcode state_dcodeFsm_scan(dcode_cluster *cluster_in) {
 }
 
 state_dcode state_dcodeFsm_blkStart(dcode_cluster *cluster_in) {
-    if ( strstr(cluster_in->file.selector, "_CONFIG") ) {
+    if ( strstr(cluster_in->file.line_buf, "_CONFIG") ) {
         cluster_in->block = block_config;
         return state_dcode_scan;
     }
     char temp_name[DCL_DCODE_NAME_LEN];
-    sscanf(cluster_in->file.selector, "!%[A-Z1-9-]", temp_name);
+    sscanf(cluster_in->file.line_buf, "!%[A-Z1-9-]", temp_name);
     strcpy(cluster_in->steps[cluster_in->stepNo], temp_name);
     if ( !fgetpos(cluster_in->file.file_pointer, &cluster_in->file.step_pos[cluster_in->stepNo]) ) {
         perror("Failed to get filepos: ");
@@ -81,22 +84,51 @@ state_dcode state_dcodeFsm_blkEnd(dcode_cluster *cluster_in) {
     cluster_in->block = block_outside;
     return state_dcode_scan;
 }
+
 state_dcode state_dcodeFsm_config(dcode_cluster *cluster_in) {
-    if ( (cluster_in->file.selector = strstr(cluster_in->file.line_buf, "SPEED =")) ) {
-        sscanf(cluster_in->file.selector, "SPEED = %d", &cluster_in->config.default_speed);
+    if ( (cluster_in->file.selector = strstr(cluster_in->file.line_buf, "SPEED=")) ) {
+        sscanf(cluster_in->file.selector, "SPEED=%d", &cluster_in->config.default_speed);
     } else {
         int temp_valve, temp_speed;
         char temp_name[DCL_DCODE_NAME_LEN];
-        sscanf(cluster_in->file.line_buf, "%d = %[A-Z],%d", &temp_valve, temp_name, &temp_speed);
+        /* TODO: Need to use a method that can tell if ",%d" failed */
+        sscanf(cluster_in->file.line_buf, "%d=%[A-Z];%d", &temp_valve, temp_name, &temp_speed);
         strcpy(cluster_in->config.valve_names[temp_valve - 1], temp_name);
         cluster_in->config.valve_speeds[temp_valve - 1] = temp_speed;
     }
     return state_dcode_scan;
 }
-/*
-dcode_block dcode_parse_label(dcode_cluster *cluster_in, char *selection) {
-    char flag,
-    sscanf(selection, )
 
+state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
+    dcode_step_str args_buffer;
+    char *arg_p[DCODE_ARGNO];
+    args_buffer.line_in = cluster_in->file.line_buf;
+    args_buffer.ret_buf = arg_p;
+
+    dcode_step_parser(&args_buffer);
+
+    return state_dcode_scan;
 }
- */
+
+void dcode_rem_wSpace(char* restrict line_out, const char* restrict line_in) {
+    while (*line_in) {
+        if ( !isblank(*line_in) ) {
+            *line_out = *line_in;
+            line_out++;
+        }
+        line_in++;
+    }
+    *line_out = '\0';
+}
+void dcode_rem_comments(char *line_in) {
+    char *string_p = strchr(line_in, '#');
+    if (string_p) {
+        *string_p = '\0';
+    }
+}
+
+int dcode_step_parser(dcode_step_str *args_in) {
+    size_t indexer= 0;
+    args_in->line_len = strlen(args_in->line_in);
+}
+
