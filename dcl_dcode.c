@@ -103,9 +103,9 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
     dcode_step_str args_buffer;
     char *arg_p[DCODE_ARGNO];
     args_buffer.line_in = cluster_in->file.line_buf;
-    args_buffer.ret_buf = arg_p;
+    args_buffer.argv = arg_p;
 
-    dcode_step_parser(&args_buffer);
+    dcode_step_lexer(&args_buffer);
 
     return state_dcode_scan;
 }
@@ -127,8 +127,33 @@ void dcode_rem_comments(char *line_in) {
     }
 }
 
-int dcode_step_parser(dcode_step_str *args_in) {
-    size_t indexer= 0;
-    args_in->line_len = strlen(args_in->line_in);
+void dcode_step_lexer(dcode_step_str *args_in) {
+    int indexer= 0;
+    args_in->argv[indexer] = args_in->line_in;
+    indexer++;
+
+    char *string_p = strstr(args_in->line_in, "->");
+    if (string_p) {
+        memset(string_p, '\0', sizeof ("->") - 1);
+        string_p += sizeof ("->") - 1;
+        args_in->argv[indexer] = string_p;
+        indexer++;
+    } else {
+        string_p = args_in->line_in;
+    }
+
+    while (*string_p) {
+        if (*string_p == ';') {
+            *string_p = '\0';
+            string_p++;
+            args_in->argv[indexer] = string_p;
+            indexer++;
+        } else if (*string_p == '\n') {
+            *string_p = '\0';
+            break;
+        }
+        string_p++;
+    }
+    args_in->argc = indexer;
 }
 

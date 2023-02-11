@@ -44,7 +44,7 @@ typedef enum state_dcode{
 typedef enum dcode_unit {
     unit_ul,
     unit_ml,
-    unit_l,
+    unit_pts,
     unit_nan,
 }dcode_unit;
 
@@ -74,11 +74,9 @@ typedef struct dcode_cluster {
 
 typedef struct dcode_step_str {
     char *line_in;
-    size_t line_len;
-    char **ret_buf;
-    char arg1[DCL_DCODE_NAME_LEN];
-    char arg2[DCL_DCODE_NAME_LEN];
-    double arg3;
+    int argc;
+    char **argv;
+    double amount;
     dcode_unit unit;
 }dcode_step_str;
 
@@ -92,6 +90,6 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in);
 
 void dcode_rem_wSpace(char* restrict line_out, const char* restrict line_in);
 void dcode_rem_comments(char *line_in);
-int dcode_step_lexer(dcode_step_str *args_in);
+void dcode_step_lexer(dcode_step_str *args_in);
 int dcode_step_parser(dcode_step_str *args_in);
 #endif //C_MSC_DCL_DCODE_H
