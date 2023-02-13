@@ -86,26 +86,21 @@ state_dcode state_dcodeFsm_blkEnd(dcode_cluster *cluster_in) {
 }
 
 state_dcode state_dcodeFsm_config(dcode_cluster *cluster_in) {
-    if ( (cluster_in->file.selector = strstr(cluster_in->file.line_buf, "SPEED=")) ) {
-        sscanf(cluster_in->file.selector, "SPEED=%d", &cluster_in->config.default_speed);
-    } else {
-        int temp_valve, temp_speed;
-        char temp_name[DCL_DCODE_NAME_LEN];
-        /* TODO: Need to use a method that can tell if ",%d" failed */
-        sscanf(cluster_in->file.line_buf, "%d=%[A-Z];%d", &temp_valve, temp_name, &temp_speed);
-        strcpy(cluster_in->config.valve_names[temp_valve - 1], temp_name);
-        cluster_in->config.valve_speeds[temp_valve - 1] = temp_speed;
-    }
+    char *argv[DCODE_ARGNO];
+    dcode_args args_buf;
+    args_buf.line_in = cluster_in->file.line_buf;
+    args_buf.argv = argv;
+    dcode_config_lexer(&args_buf);
+
     return state_dcode_scan;
 }
 
 state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
-    dcode_step_str args_buffer;
-    char *arg_p[DCODE_ARGNO];
-    args_buffer.line_in = cluster_in->file.line_buf;
-    args_buffer.argv = arg_p;
-
-    dcode_step_lexer(&args_buffer);
+    char *argv[DCODE_ARGNO];
+    dcode_args args_buf;
+    args_buf.line_in = cluster_in->file.line_buf;
+    args_buf.argv = argv;
+    dcode_step_lexer(&args_buf);
 
     return state_dcode_scan;
 }
@@ -127,17 +122,17 @@ void dcode_rem_comments(char *line_in) {
     }
 }
 
-void dcode_step_lexer(dcode_step_str *args_in) {
-    int indexer= 0;
-    args_in->argv[indexer] = args_in->line_in;
-    indexer++;
+void dcode_step_lexer(dcode_args *args_in) {
+    int index= 0;
+    args_in->argv[index] = args_in->line_in;
+    index++;
 
     char *string_p = strstr(args_in->line_in, "->");
     if (string_p) {
         memset(string_p, '\0', sizeof ("->") - 1);
         string_p += sizeof ("->") - 1;
-        args_in->argv[indexer] = string_p;
-        indexer++;
+        args_in->argv[index] = string_p;
+        index++;
     } else {
         string_p = args_in->line_in;
     }
@@ -146,14 +141,35 @@ void dcode_step_lexer(dcode_step_str *args_in) {
         if (*string_p == ';') {
             *string_p = '\0';
             string_p++;
-            args_in->argv[indexer] = string_p;
-            indexer++;
+            args_in->argv[index] = string_p;
+            index++;
         } else if (*string_p == '\n') {
             *string_p = '\0';
             break;
         }
         string_p++;
     }
-    args_in->argc = indexer;
+    args_in->argc = index;
+}
+
+void dcode_config_lexer(dcode_args *args_in) {
+    int index= 0;
+    args_in->argv[index] = args_in->line_in;
+    index++;
+
+    char *string_p = args_in->line_in;
+    while (*string_p) {
+        if (*string_p == ';' || *string_p == '=') {
+            *string_p = '\0';
+            string_p++;
+            args_in->argv[index] = string_p;
+            index++;
+        } else if (*string_p == '\n') {
+            *string_p = '\0';
+            break;
+        }
+        string_p++;
+    }
+    args_in->argc = index;
 }
 

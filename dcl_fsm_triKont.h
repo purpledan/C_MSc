@@ -51,9 +51,10 @@ typedef struct triC_fsm_cluster {
     char state_field;
     bool init_complete;                 // Init completed
     bool enable_external;               // Enable link to external status
+    bool enable_log;                    // Enable writing log file
 }triC_fsm_cluster;
 
-//state_triC state_triC_create(void *arg);
+//void state_triC_create(state_triC *fsm_array);
 triC_fsm_cluster *state_triC_fsmSetup(dcl_queue_type *fsm_msg_queue,
                                       dcl_serialDevice *triC_dev,
                                       pthread_mutex_t *ext_mutex,

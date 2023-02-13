@@ -72,13 +72,11 @@ typedef struct dcode_cluster {
     char steps[DCL_DCODE_MAXSTEPS][DCL_DCODE_NAME_LEN];             // Array which holds user step names
 }dcode_cluster;
 
-typedef struct dcode_step_str {
+typedef struct dcode_args {
     char *line_in;
     int argc;
     char **argv;
-    double amount;
-    dcode_unit unit;
-}dcode_step_str;
+}dcode_args;
 
 dcode_cluster *state_dcodeFsm_setup(char *file_name, dcl_queue_type *queue_in);
 state_dcode state_dcodeFsm_init(dcode_cluster *cluster_in);
@@ -90,6 +88,7 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in);
 
 void dcode_rem_wSpace(char* restrict line_out, const char* restrict line_in);
 void dcode_rem_comments(char *line_in);
-void dcode_step_lexer(dcode_step_str *args_in);
-int dcode_step_parser(dcode_step_str *args_in);
+void dcode_step_lexer(dcode_args *args_in);
+int dcode_step_parser(dcode_args *args_in);
+void dcode_config_lexer(dcode_args *args_in);
 #endif //C_MSC_DCL_DCODE_H
