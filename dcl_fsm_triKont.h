@@ -18,6 +18,7 @@
 typedef enum action_triC {
     action_pul,                 // PUL string command
     action_psh,                 // PSH string command
+    action_cfg,                 // CFG string command
     action_set,                 // SET string command
     action_err                  // Parse failure
 } action_triC;
@@ -72,4 +73,5 @@ void action_triC_sel(triC_fsm_cluster *cluster_in);
 void action_triC_psh(triC_fsm_cluster *cluster_in);
 void action_triC_pul(triC_fsm_cluster *cluster_in);
 void action_triC_set(triC_fsm_cluster *cluster_in);
+void action_triC_cfg(triC_fsm_cluster *cluster_in);
 #endif //C_MSC_DCL_FSM_TRIKONT_H

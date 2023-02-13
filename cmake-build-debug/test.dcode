@@ -1,5 +1,6 @@
 # This is an example of a dcode program
 # Config block
+
 !_CONFIG
 SPEED = 14
 1 = WATER
@@ -9,10 +10,10 @@ SPEED = 14
 @_CONFIG
 
 # Steps are written like this
-!STEP_1
-    WATER   ->  OUTPUT; 10ML
-    ETHANOL ->  OUTPUT; 10ML
-    WATER   ->  WASTE;  5ML
+!WASH_STEP
+    WATER   ->  OUTPUT
+    ETHANOL ->  OUTPUT
+    WATER   ->  WASTE
 @STEP_1
 
 !STEP_2

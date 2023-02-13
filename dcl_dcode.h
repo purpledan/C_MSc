@@ -58,16 +58,28 @@ typedef struct dcode_file {
 }dcode_file;
 
 typedef struct dcode_triC_config {
+    char pump_name[DCL_DCODE_NAME_LEN];                             // User given name for pump
     char valve_names[DCL_TRIC_VALVENO][DCL_DCODE_NAME_LEN];         // User given names for valves
     int valve_speeds[DCL_TRIC_VALVENO];                             // Speed setting for valves
-    int default_speed;                                              // Default speed setting see pg 69 of C3000 manual
+    long default_speed;                                              // Default speed setting see pg 69 of C3000 manual
+    struct dcode_triC_config *next_pump;                            // Next Config block
 }dcode_triC_config;
+
+typedef struct dcode_triC_steps {
+    char step_name[DCL_DCODE_NAME_LEN];                             // Name of current step
+    int index;                                                      // Index of current action
+    int last_index;                                                 // Index of last action
+    char block[32][DCL_STRMSG_LEN];                                 // action data block TODO: Make dynamic
+    struct dcode_triC_steps *next_step;                             // Next step block
+}dcode_triC_steps;
 
 typedef struct dcode_cluster {
     dcl_fsm_cluster_type *fsm;
     dcode_file file;
     dcode_triC_config config;                                       // Future use to pass config via files
     dcode_block block;                                              // Current parsing block
+    dcode_triC_steps *step_list;                                    // Linked list containing steps
+    dcode_triC_steps *current_step;
     size_t stepNo;                                                  // Step index
     char steps[DCL_DCODE_MAXSTEPS][DCL_DCODE_NAME_LEN];             // Array which holds user step names
 }dcode_cluster;
@@ -91,4 +103,5 @@ void dcode_rem_comments(char *line_in);
 void dcode_step_lexer(dcode_args *args_in);
 int dcode_step_parser(dcode_args *args_in);
 void dcode_config_lexer(dcode_args *args_in);
+int dcode_search_valve(dcode_cluster *cluster_in, char *name);
 #endif //C_MSC_DCL_DCODE_H

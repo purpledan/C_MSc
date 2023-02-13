@@ -24,13 +24,14 @@ int main() {
     dcl_thr_sendMsg(&worker_queue, &buffer);
 
     int status;
-
+    /*
     pthread_t worker_ID, parser_ID;
     status = pthread_create(&worker_ID, NULL, pumpThread, NULL);
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }
-
+    */
+    pthread_t parser_ID;
     status = pthread_create(&parser_ID, NULL, parserThread, NULL);
     if (status) {
         printf("Thread Fuckup, %d\n", status);
@@ -40,10 +41,11 @@ int main() {
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }
-
+    /*
     status = pthread_join(worker_ID, NULL);
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }
+     */
     return 0;
 }

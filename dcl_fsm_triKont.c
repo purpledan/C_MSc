@@ -131,6 +131,9 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
         case action_psh:
             action_triC_psh(cluster_in);
             break;
+        case action_cfg:
+            action_triC_cfg(cluster_in);
+            break;
         case action_set:
             action_triC_set(cluster_in);
             break;
@@ -211,7 +214,7 @@ int ext_triC_updateStatus(triC_fsm_cluster *cluster_in) {
 
 void aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
     char temp_string[8] = "";
-
+    // TODO: Use strtol
     sscanf(cluster_in->fsm->msg_buf.argstr, "%[A-Z],%d,%d",
            temp_string,
            &cluster_in->arg1,
@@ -221,6 +224,8 @@ void aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
         cluster_in->nxt_cmd = action_psh;
     } else if (!strcmp("PUL", temp_string)) {
         cluster_in->nxt_cmd = action_pul;
+    } else if (!strcmp("CFG", temp_string)) {
+        cluster_in->nxt_cmd = action_cfg;
     } else if (!strcmp("SET", temp_string)) {
         cluster_in->nxt_cmd = action_set;
     } else {
@@ -259,6 +264,19 @@ void action_triC_pul(triC_fsm_cluster *cluster_in) {
 }
 
 void action_triC_set(triC_fsm_cluster *cluster_in) {
+    if ( cluster_in->fsm->opt_field & ARGSEL ) {
+        action_triC_sel(cluster_in);
+    } else {
+        cluster_in->fsm->opt_field |= LSTACT;
+        printf("Setting Plunger %d\n", cluster_in->arg2);
+        dcl_triC_setPlunger(cluster_in->device_in, cluster_in->arg2);
+    }
+    /* The SP should be busy moving now */
+    cluster_in->fsm->opt_field |= SPBUSY;
+
+}
+
+void action_triC_cfg(triC_fsm_cluster *cluster_in) {
     /* No action, only changing a setting */
     cluster_in->fsm->opt_field &= ~ACTBSY;
     switch (cluster_in->arg1) {

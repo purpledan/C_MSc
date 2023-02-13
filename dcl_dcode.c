@@ -16,6 +16,7 @@ dcode_cluster *state_dcodeFsm_setup(char *file_name, dcl_queue_type *queue_in) {
         perror("Could not open dcode: ");
         abort();
     }
+
     return &thread_cluster;
 }
 
@@ -24,6 +25,7 @@ state_dcode state_dcodeFsm_init(dcode_cluster *cluster_in) {
     cluster_in->stepNo = 0;
     cluster_in->fsm->opt_field = '\0';
     cluster_in->block = block_outside;
+    cluster_in->step_list = NULL;
     return state_dcode_scan;
 }
 
@@ -35,9 +37,6 @@ state_dcode state_dcodeFsm_scan(dcode_cluster *cluster_in) {
     }
     dcode_rem_wSpace(cluster_in->file.line_buf, temp_string);
     dcode_rem_comments(cluster_in->file.line_buf);
-
-    printf("Read: %s\n", temp_string);
-    printf("to: %s\n", cluster_in->file.line_buf);
 
     cluster_in->file.line_no++;
 
@@ -67,16 +66,24 @@ state_dcode state_dcodeFsm_blkStart(dcode_cluster *cluster_in) {
     if ( strstr(cluster_in->file.line_buf, "_CONFIG") ) {
         cluster_in->block = block_config;
         return state_dcode_scan;
+    } else {
+        cluster_in->block = block_step;
     }
-    char temp_name[DCL_DCODE_NAME_LEN];
-    sscanf(cluster_in->file.line_buf, "!%[A-Z1-9-]", temp_name);
-    strcpy(cluster_in->steps[cluster_in->stepNo], temp_name);
-    if ( !fgetpos(cluster_in->file.file_pointer, &cluster_in->file.step_pos[cluster_in->stepNo]) ) {
-        perror("Failed to get filepos: ");
-        return state_dcode_abort;
+    if ( !cluster_in->step_list ) {
+        cluster_in->step_list = malloc( sizeof (dcode_triC_steps) );
+        if (!cluster_in->step_list) {
+            perror("Failed to malloc step: ");
+            return state_dcode_abort;
+        }
+        cluster_in->step_list->next_step = NULL;
+
+        cluster_in->current_step = cluster_in->step_list;
+    } else {
+        //TODO scan until end of linked list
     }
-    cluster_in->stepNo++;
-    cluster_in->block = block_step;
+    cluster_in->current_step->index = 0;
+    strcpy(cluster_in->current_step->step_name, &cluster_in->file.line_buf[1]); /* Skip the '!' */
+
     return state_dcode_scan;
 }
 
@@ -92,6 +99,18 @@ state_dcode state_dcodeFsm_config(dcode_cluster *cluster_in) {
     args_buf.argv = argv;
     dcode_config_lexer(&args_buf);
 
+    /* Check reserved args */
+    if ( !strcmp(args_buf.argv[0], "SPEED") ) {
+        cluster_in->config.default_speed = strtol(args_buf.argv[1], NULL, 10);
+    } else {
+        int valve_index;
+        if ( (valve_index = (int)strtol(args_buf.argv[0], NULL, 10)) ) { // CAST: Index has max value of 6 <<<<<<<<< INT_MAX
+            strcpy(cluster_in->config.valve_names[valve_index - 1], args_buf.argv[1]);
+            if ( args_buf.argc == 3 ) {
+                cluster_in->config.valve_speeds[valve_index - 1] = (int)strtol(args_buf.argv[2], NULL, 10);
+            }
+        }
+    }
     return state_dcode_scan;
 }
 
@@ -101,7 +120,20 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
     args_buf.line_in = cluster_in->file.line_buf;
     args_buf.argv = argv;
     dcode_step_lexer(&args_buf);
-
+    // TODO: Abstract creation of STRMSGs
+    int valve;
+    if (args_buf.argc == 1) {
+        valve = dcode_search_valve(cluster_in, args_buf.argv[0]);
+        sprintf(cluster_in->current_step->block[cluster_in->current_step->index], "SET,%d,0", valve);
+        cluster_in->current_step->index++;
+    } else if (args_buf.argc == 2) {
+        valve = dcode_search_valve(cluster_in, args_buf.argv[0]);
+        sprintf(cluster_in->current_step->block[cluster_in->current_step->index], "PUL,%d,3000", valve);
+        cluster_in->current_step->index++;
+        valve = dcode_search_valve(cluster_in, args_buf.argv[1]);
+        sprintf(cluster_in->current_step->block[cluster_in->current_step->index], "PSH,%d,3000", valve);
+        cluster_in->current_step->index++;
+    }
     return state_dcode_scan;
 }
 
@@ -173,3 +205,11 @@ void dcode_config_lexer(dcode_args *args_in) {
     args_in->argc = index;
 }
 
+int dcode_search_valve(dcode_cluster *cluster_in, char *name) {
+    for (int i = 0; i < DCL_TRIC_VALVENO; i++) {
+        if ( !strcmp(name, cluster_in->config.valve_names[i]) ) {
+            return i + 1;
+        }
+    }
+    return 0;
+}

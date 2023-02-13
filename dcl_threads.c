@@ -47,7 +47,8 @@ void *parserThread(void *arg) {
              [state_dcode_scan] = state_dcodeFsm_scan,
              [state_dcode_blkStart] = state_dcodeFsm_blkStart,
              [state_dcode_blkEnd] = state_dcodeFsm_blkEnd,
-             [state_dcode_config] = state_dcodeFsm_config};
+             [state_dcode_config] = state_dcodeFsm_config,
+             [state_dcode_step] = state_dcodeFsm_step};
     state_dcode next_state = state_dcode_init;
 
     dcode_cluster *thread_cluster = state_dcodeFsm_setup( "test.dcode", NULL);
@@ -61,7 +62,6 @@ void *parserThread(void *arg) {
                thread_cluster->config.valve_names[i],
                thread_cluster->config.valve_speeds[i]);
     }
-    printf("Default speed: %d\n", thread_cluster->config.default_speed);
 
     fclose(thread_cluster->file.file_pointer);
     return 0;
