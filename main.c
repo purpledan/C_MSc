@@ -17,35 +17,35 @@ int main() {
     // Init MSG queue
     dcl_queue_init(&worker_queue);
     // Test MSG
+    /*
     dcl_strmsg_type buffer = {
             .terminate = 1,
             .argstr = "PUL,1,1500\0"
     };
     dcl_thr_sendMsg(&worker_queue, &buffer);
-
-    int status;
-    /*
-    pthread_t worker_ID, parser_ID;
-    status = pthread_create(&worker_ID, NULL, pumpThread, NULL);
-    if (status) {
-        printf("Thread Fuckup, %d\n", status);
-    }
     */
-    pthread_t parser_ID;
+    int status;
+
+    pthread_t worker_ID, parser_ID;
+
     status = pthread_create(&parser_ID, NULL, parserThread, NULL);
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }
+    sleep(5);
+    status = pthread_create(&worker_ID, NULL, pumpThread, NULL);
+    if (status) {
+        printf("Thread Fuckup, %d\n", status);
+    }
+
 
     status = pthread_join(parser_ID, NULL);
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }
-    /*
     status = pthread_join(worker_ID, NULL);
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }
-     */
     return 0;
 }

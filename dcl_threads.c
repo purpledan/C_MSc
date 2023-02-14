@@ -48,10 +48,12 @@ void *parserThread(void *arg) {
              [state_dcode_blkStart] = state_dcodeFsm_blkStart,
              [state_dcode_blkEnd] = state_dcodeFsm_blkEnd,
              [state_dcode_config] = state_dcodeFsm_config,
-             [state_dcode_step] = state_dcodeFsm_step};
+             [state_dcode_step] = state_dcodeFsm_step,
+             [state_dcode_run] = state_dcodeFsm_run,
+            [state_dcode_abort] = state_dcodeFsm_abort};
     state_dcode next_state = state_dcode_init;
 
-    dcode_cluster *thread_cluster = state_dcodeFsm_setup( "test.dcode", NULL);
+    dcode_cluster *thread_cluster = state_dcodeFsm_setup( "test.dcode", &worker_queue);
 
     while (next_state != state_dcode_exit) {
         next_state = fsm_dcode[next_state](thread_cluster);

@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <math.h>
 
 #include "dcl_config.h"
 #include "dcl_msgQueue.h"
@@ -35,7 +36,6 @@ typedef enum state_dcode{
     state_dcode_config,
     state_dcode_step,
     state_dcode_run,
-    state_dcode_EOF,
     state_dcode_abort,
     state_dcode_exit,
     dcode_numstates
@@ -61,14 +61,15 @@ typedef struct dcode_triC_config {
     char pump_name[DCL_DCODE_NAME_LEN];                             // User given name for pump
     char valve_names[DCL_TRIC_VALVENO][DCL_DCODE_NAME_LEN];         // User given names for valves
     int valve_speeds[DCL_TRIC_VALVENO];                             // Speed setting for valves
-    long default_speed;                                              // Default speed setting see pg 69 of C3000 manual
+    long default_speed;                                             // Default speed setting see pg 69 of C3000 manual
+    int pump_resolution;                                            // Setpoint for full plunger down
+    double syringe_volume;                                          // Syringe_volume in mL
     struct dcode_triC_config *next_pump;                            // Next Config block
 }dcode_triC_config;
 
 typedef struct dcode_triC_steps {
     char step_name[DCL_DCODE_NAME_LEN];                             // Name of current step
     int index;                                                      // Index of current action
-    int last_index;                                                 // Index of last action
     char block[32][DCL_STRMSG_LEN];                                 // action data block TODO: Make dynamic
     struct dcode_triC_steps *next_step;                             // Next step block
 }dcode_triC_steps;
@@ -80,8 +81,6 @@ typedef struct dcode_cluster {
     dcode_block block;                                              // Current parsing block
     dcode_triC_steps *step_list;                                    // Linked list containing steps
     dcode_triC_steps *current_step;
-    size_t stepNo;                                                  // Step index
-    char steps[DCL_DCODE_MAXSTEPS][DCL_DCODE_NAME_LEN];             // Array which holds user step names
 }dcode_cluster;
 
 typedef struct dcode_args {
@@ -97,6 +96,8 @@ state_dcode state_dcodeFsm_blkStart(dcode_cluster *cluster_in);
 state_dcode state_dcodeFsm_blkEnd(dcode_cluster *cluster_in);
 state_dcode state_dcodeFsm_config(dcode_cluster *cluster_in);
 state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in);
+state_dcode state_dcodeFsm_run(dcode_cluster *cluster_in);
+state_dcode state_dcodeFsm_abort(dcode_cluster *cluster_in);
 
 void dcode_rem_wSpace(char* restrict line_out, const char* restrict line_in);
 void dcode_rem_comments(char *line_in);
@@ -104,4 +105,6 @@ void dcode_step_lexer(dcode_args *args_in);
 int dcode_step_parser(dcode_args *args_in);
 void dcode_config_lexer(dcode_args *args_in);
 int dcode_search_valve(dcode_cluster *cluster_in, char *name);
+dcode_unit dcode_search_unit(char *unit_in);
+int dcode_unit_convert(dcode_cluster *cluster_in, double amount, dcode_unit unit);
 #endif //C_MSC_DCL_DCODE_H

@@ -22,10 +22,11 @@ dcode_cluster *state_dcodeFsm_setup(char *file_name, dcl_queue_type *queue_in) {
 
 state_dcode state_dcodeFsm_init(dcode_cluster *cluster_in) {
     cluster_in->file.line_no = 0;
-    cluster_in->stepNo = 0;
     cluster_in->fsm->opt_field = '\0';
     cluster_in->block = block_outside;
     cluster_in->step_list = NULL;
+    cluster_in->config.pump_resolution = 3000;      //TODO: Make non magic number
+    cluster_in->config.syringe_volume = 5.0;        //TODO: Also make non magic number
     return state_dcode_scan;
 }
 
@@ -66,9 +67,13 @@ state_dcode state_dcodeFsm_blkStart(dcode_cluster *cluster_in) {
     if ( strstr(cluster_in->file.line_buf, "_CONFIG") ) {
         cluster_in->block = block_config;
         return state_dcode_scan;
+    } else if ( strstr(cluster_in->file.line_buf, "RUN") ) {
+        cluster_in->block = block_run;
+        return state_dcode_scan;
     } else {
         cluster_in->block = block_step;
     }
+
     if ( !cluster_in->step_list ) {
         cluster_in->step_list = malloc( sizeof (dcode_triC_steps) );
         if (!cluster_in->step_list) {
@@ -76,11 +81,21 @@ state_dcode state_dcodeFsm_blkStart(dcode_cluster *cluster_in) {
             return state_dcode_abort;
         }
         cluster_in->step_list->next_step = NULL;
-
         cluster_in->current_step = cluster_in->step_list;
     } else {
-        //TODO scan until end of linked list
+        while (cluster_in->current_step->next_step) {
+            cluster_in->current_step = cluster_in->current_step->next_step;
+        }
+        cluster_in->current_step->next_step = malloc(sizeof (dcode_triC_steps) );
+        cluster_in->current_step = cluster_in->current_step->next_step;
+        if (!cluster_in->current_step) {
+            perror("Failed to malloc step: ");
+            return state_dcode_abort;
+        }
+        cluster_in->current_step->next_step = NULL;
     }
+
+
     cluster_in->current_step->index = 0;
     strcpy(cluster_in->current_step->step_name, &cluster_in->file.line_buf[1]); /* Skip the '!' */
 
@@ -121,20 +136,99 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
     args_buf.argv = argv;
     dcode_step_lexer(&args_buf);
     // TODO: Abstract creation of STRMSGs
-    int valve;
-    if (args_buf.argc == 1) {
-        valve = dcode_search_valve(cluster_in, args_buf.argv[0]);
-        sprintf(cluster_in->current_step->block[cluster_in->current_step->index], "SET,%d,0", valve);
+    if (args_buf.argc < 2) {
+        fprintf(stderr,
+                "Line: %d, not enough arguments, did you forget '->'?",
+                (int)cluster_in->file.line_no);
+        return state_dcode_abort;
+    }
+    int valve_in, valve_out, amount;
+    double read_amount;
+    if (*args_buf.argv[0]) {
+        valve_in = dcode_search_valve(cluster_in, args_buf.argv[0]);
+        if (!valve_in) {
+            fprintf(stderr,"Line %d, Input valve not found\n", (int)cluster_in->file.line_no);
+            return state_dcode_abort;
+        }
+    } else {
+        valve_in = 0;
+    }
+    if (*args_buf.argv[1]) {
+        valve_out = dcode_search_valve(cluster_in, args_buf.argv[1]);
+        if (!valve_out) {
+            fprintf(stderr,"Line %d, Output valve not found\n", (int)cluster_in->file.line_no);
+            return state_dcode_abort;
+        }
+    } else {
+        valve_out = 0;
+    }
+    if ( !(valve_in) && !(valve_out) ) {
+        fprintf(stderr,
+                "Line: %d, no valve names found, aborting!\n",
+                (int)cluster_in->file.line_no);
+        return state_dcode_abort;
+    }
+    if (args_buf.argc >= 3) {
+        char *unit;
+        read_amount = strtod(args_buf.argv[2], &unit);
+        if (*unit) {
+            dcode_unit read_unit = dcode_search_unit(unit);
+            amount = dcode_unit_convert(cluster_in, read_amount, read_unit);
+        } else {
+            amount = dcode_unit_convert(cluster_in, read_amount, unit_pts);
+        }
+    } else {
+        amount = 3000;
+    }
+    if (valve_in) {
+        sprintf(cluster_in->current_step->block[cluster_in->current_step->index],
+                "PUL,%d,%d",
+                valve_in,
+                amount);
         cluster_in->current_step->index++;
-    } else if (args_buf.argc == 2) {
-        valve = dcode_search_valve(cluster_in, args_buf.argv[0]);
-        sprintf(cluster_in->current_step->block[cluster_in->current_step->index], "PUL,%d,3000", valve);
-        cluster_in->current_step->index++;
-        valve = dcode_search_valve(cluster_in, args_buf.argv[1]);
-        sprintf(cluster_in->current_step->block[cluster_in->current_step->index], "PSH,%d,3000", valve);
+    }
+    if (valve_out) {
+        sprintf(cluster_in->current_step->block[cluster_in->current_step->index],
+                "PSH,%d,%d",
+                valve_out,
+                amount);
         cluster_in->current_step->index++;
     }
     return state_dcode_scan;
+}
+
+state_dcode state_dcodeFsm_run(dcode_cluster *cluster_in) {
+    cluster_in->current_step = cluster_in->step_list;
+    bool step_found = false;
+    while (!step_found) {
+        if ( !strcmp(cluster_in->file.line_buf, cluster_in->current_step->step_name) ) {
+            step_found = true;
+        } else {
+            if (!cluster_in->current_step->next_step) {
+                fprintf(stderr,
+                        "Line: %d, could not find step: %s\n",
+                        (int)cluster_in->file.line_no,
+                        cluster_in->file.line_buf);
+                return state_dcode_abort;
+            } else {
+                cluster_in->current_step = cluster_in->current_step->next_step;
+            }
+        }
+    }
+    dcl_strmsg_type buffer = {
+            .terminate = 0,
+    };
+
+    for (int i = 0; i < cluster_in->current_step->index; i++) {
+        strcpy(buffer.argstr, cluster_in->current_step->block[i]);
+        dcl_thr_sendMsg(cluster_in->fsm->queue, &buffer);
+    }
+    return state_dcode_scan;
+}
+
+state_dcode state_dcodeFsm_abort(dcode_cluster *cluster_in) {
+    fprintf(stderr, "Aborting dcode execution, you are on your own now\n");
+    return state_dcode_exit;
 }
 
 void dcode_rem_wSpace(char* restrict line_out, const char* restrict line_in) {
@@ -212,4 +306,29 @@ int dcode_search_valve(dcode_cluster *cluster_in, char *name) {
         }
     }
     return 0;
+}
+
+dcode_unit dcode_search_unit(char *unit_in) {
+    // TODO: Make case insensitive
+    if ( !strcmp(unit_in, "ML") ) {
+        return unit_ml;
+    } else if ( !strcmp(unit_in, "UL") ) {
+        return unit_ul;
+    }  else {
+        return unit_nan;
+    }
+}
+
+int dcode_unit_convert(dcode_cluster *cluster_in, double amount, dcode_unit unit) {
+    switch (unit) {
+        case unit_ml:
+            return (int)lround( (amount * 600.0) ); // CAST: Values bigger than INT_MAX should make you feel bad
+        case unit_ul:
+            return (int)lround( (amount/1000 * 600.0) );
+        case unit_pts:
+            return (int) lround(amount);
+        case unit_nan:  // TODO: Add method to check inputs of units
+        default:
+            return 0;
+    }
 }

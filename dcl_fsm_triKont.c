@@ -56,8 +56,6 @@ state_triC state_triC_init(triC_fsm_cluster *cluster_in) {
 }
 
 state_triC state_triC_idle(triC_fsm_cluster *cluster_in) {
-    printf("Idle:\n");
-
     if ( cluster_in->fsm->opt_field & ACTBSY ) {
         /* An action is being performed */
         if ( cluster_in->fsm->opt_field & SPBUSY ) {
@@ -85,8 +83,6 @@ state_triC state_triC_idle(triC_fsm_cluster *cluster_in) {
 }
 
 state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in) {
-    printf("Getting Msg:\n");
-
     int ret_flag = dcl_fsm_thr_getMsg(cluster_in->fsm);
 
     switch (ret_flag) {
@@ -147,7 +143,6 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
 }
 
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in) {
-    printf("Transient:\n");
     //int ret_flag;
 
     /* Pump in transient, get status of pump */
