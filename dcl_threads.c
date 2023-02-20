@@ -15,6 +15,7 @@ void *pumpThread(void *arg) {
              [state_getMsg] = state_triC_getMsg,
              [state_action] = state_triC_action,
              [state_transient] = state_triC_transient,
+             [state_halt] = state_triC_halt,
              [state_critical] = state_triC_critical,
              [state_terminate] = state_triC_terminate};
     state_triC next_state = state_init;

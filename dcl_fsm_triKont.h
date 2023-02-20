@@ -33,7 +33,7 @@ typedef enum state_triC {
     state_transient,
     state_idle,
     state_getMsg,
-    state_updateStat,
+    state_halt,
     state_terminate,
     state_exit,
     state_critical,
@@ -65,6 +65,7 @@ state_triC state_triC_idle(triC_fsm_cluster *cluster_in);
 state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in);
 state_triC state_triC_action(triC_fsm_cluster *cluster_in);
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in);
+state_triC state_triC_halt(triC_fsm_cluster *cluster_in);
 state_triC state_triC_critical(triC_fsm_cluster *cluster_in);
 state_triC state_triC_terminate(triC_fsm_cluster *cluster_in);
 int ext_triC_updateStatus(triC_fsm_cluster *cluster_in);

@@ -32,11 +32,21 @@ int main() {
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }
-    sleep(5);
+    //sleep(1);
     status = pthread_create(&worker_ID, NULL, pumpThread, NULL);
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }
+    sleep(15);
+    dcl_strmsg_type buffer = {
+            .terminate = 0,
+            .argstr = "PUL,1,200\0"
+    };
+    dcl_thr_sendMsg(&worker_queue, &buffer);
+    strcpy(buffer.argstr, "PSH,3,200\0");
+    dcl_thr_sendMsg(&worker_queue, &buffer);
+    buffer.terminate = true;
+    dcl_thr_sendMsg(&worker_queue, &buffer);
 
 
     status = pthread_join(parser_ID, NULL);

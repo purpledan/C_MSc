@@ -33,6 +33,7 @@ int dcl_fsm_thr_getMsg(dcl_fsm_cluster_type *cluster_in) {
     pthread_mutex_unlock(&cluster_in->queue->mutex);
     return ret_flag;
 }
+
 int dcl_fsm_thr_timed_getMsg(dcl_fsm_cluster_type *cluster_in) {
     pthread_mutex_lock(&cluster_in->queue->mutex);
     // TODO: pthread_mutex_timedlock(&cluster_in->queue->mutex, );
@@ -54,6 +55,9 @@ int dcl_fsm_terminate(dcl_queue_type *fsm_queue) {
 
 int dcl_thr_sendMsg(dcl_queue_type *fsm_queue, dcl_strmsg_type *buf_in) {
     pthread_mutex_lock(&fsm_queue->mutex);
+    if ( !fsm_queue->length ) {
+        pthread_cond_signal(&fsm_queue->alert);
+    }
     dcl_queue_pushStrMsg(fsm_queue, buf_in);
     pthread_mutex_unlock(&fsm_queue->mutex);
     return 0;

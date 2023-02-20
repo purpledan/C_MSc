@@ -4,11 +4,6 @@
 //
 
 #include "dcl_fsm_triKont.h"
-/*
-void state_triC_fsmCreate(void *argstr) {
-    int (*argstr[state_init])() = state_triC_init;
-}
-*/
 
 triC_fsm_cluster *state_triC_fsmSetup(dcl_queue_type *fsm_msg_queue,
                                       dcl_serialDevice *triC_dev,
@@ -94,7 +89,7 @@ state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in) {
             cluster_in->fsm->opt_field |= MSGRDY;
             return state_idle;
         case NOMSGS:
-            return state_idle;
+            return state_halt;
         case MSGERR:
         default:
             return state_critical;
@@ -166,6 +161,26 @@ state_triC state_triC_transient(triC_fsm_cluster *cluster_in) {
     };
     nanosleep(&halt, NULL);
 
+    return state_idle;
+}
+
+state_triC state_triC_halt(triC_fsm_cluster *cluster_in) {
+    int status = pthread_mutex_lock(&cluster_in->fsm->queue->mutex);
+    if (status) {
+        perror("Queue Halt Failure: ");
+        return state_critical;
+    }
+
+    if ( cluster_in->fsm->queue_empty ) {
+        printf("Queue Empty, halting\n");
+        pthread_cond_wait(&cluster_in->fsm->queue->alert,
+                          &cluster_in->fsm->queue->mutex);
+        /* If a spurious wakeup occurs, the fsm will test the queue again
+         * if it is still empty, this state will execute again continuing
+         * in a loop until a new message is received */
+        cluster_in->fsm->queue_empty = false;
+    }
+    pthread_mutex_unlock(&cluster_in->fsm->queue->mutex);
     return state_idle;
 }
 
