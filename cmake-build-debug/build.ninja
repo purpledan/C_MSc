@@ -48,55 +48,55 @@ build cmake_object_order_depends_target_C_MSc: phony || CMakeFiles/C_MSc.dir
 
 build CMakeFiles/C_MSc.dir/main.c.o: C_COMPILER__C_MSc_Debug /Users/dan/C_Projects/C_MSc/main.c || cmake_object_order_depends_target_C_MSc
   DEP_FILE = CMakeFiles/C_MSc.dir/main.c.o.d
-  FLAGS = -O0 -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
+  FLAGS = -O0 -ggdb -lm -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
   OBJECT_DIR = CMakeFiles/C_MSc.dir
   OBJECT_FILE_DIR = CMakeFiles/C_MSc.dir
 
-build CMakeFiles/C_MSc.dir/dcl_msgQueue.c.o: C_COMPILER__C_MSc_Debug /Users/dan/C_Projects/C_MSc/dcl_msgQueue.c || cmake_object_order_depends_target_C_MSc
-  DEP_FILE = CMakeFiles/C_MSc.dir/dcl_msgQueue.c.o.d
-  FLAGS = -O0 -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
+build CMakeFiles/C_MSc.dir/dcl_structs.c.o: C_COMPILER__C_MSc_Debug /Users/dan/C_Projects/C_MSc/dcl_structs.c || cmake_object_order_depends_target_C_MSc
+  DEP_FILE = CMakeFiles/C_MSc.dir/dcl_structs.c.o.d
+  FLAGS = -O0 -ggdb -lm -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
   OBJECT_DIR = CMakeFiles/C_MSc.dir
   OBJECT_FILE_DIR = CMakeFiles/C_MSc.dir
 
 build CMakeFiles/C_MSc.dir/dcl_serial.c.o: C_COMPILER__C_MSc_Debug /Users/dan/C_Projects/C_MSc/dcl_serial.c || cmake_object_order_depends_target_C_MSc
   DEP_FILE = CMakeFiles/C_MSc.dir/dcl_serial.c.o.d
-  FLAGS = -O0 -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
+  FLAGS = -O0 -ggdb -lm -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
   OBJECT_DIR = CMakeFiles/C_MSc.dir
   OBJECT_FILE_DIR = CMakeFiles/C_MSc.dir
 
 build CMakeFiles/C_MSc.dir/dcl_string.c.o: C_COMPILER__C_MSc_Debug /Users/dan/C_Projects/C_MSc/dcl_string.c || cmake_object_order_depends_target_C_MSc
   DEP_FILE = CMakeFiles/C_MSc.dir/dcl_string.c.o.d
-  FLAGS = -O0 -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
+  FLAGS = -O0 -ggdb -lm -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
   OBJECT_DIR = CMakeFiles/C_MSc.dir
   OBJECT_FILE_DIR = CMakeFiles/C_MSc.dir
 
 build CMakeFiles/C_MSc.dir/dcl_triKont.c.o: C_COMPILER__C_MSc_Debug /Users/dan/C_Projects/C_MSc/dcl_triKont.c || cmake_object_order_depends_target_C_MSc
   DEP_FILE = CMakeFiles/C_MSc.dir/dcl_triKont.c.o.d
-  FLAGS = -O0 -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
+  FLAGS = -O0 -ggdb -lm -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
   OBJECT_DIR = CMakeFiles/C_MSc.dir
   OBJECT_FILE_DIR = CMakeFiles/C_MSc.dir
 
 build CMakeFiles/C_MSc.dir/dcl_fsm_triKont.c.o: C_COMPILER__C_MSc_Debug /Users/dan/C_Projects/C_MSc/dcl_fsm_triKont.c || cmake_object_order_depends_target_C_MSc
   DEP_FILE = CMakeFiles/C_MSc.dir/dcl_fsm_triKont.c.o.d
-  FLAGS = -O0 -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
+  FLAGS = -O0 -ggdb -lm -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
   OBJECT_DIR = CMakeFiles/C_MSc.dir
   OBJECT_FILE_DIR = CMakeFiles/C_MSc.dir
 
 build CMakeFiles/C_MSc.dir/dcl_threads.c.o: C_COMPILER__C_MSc_Debug /Users/dan/C_Projects/C_MSc/dcl_threads.c || cmake_object_order_depends_target_C_MSc
   DEP_FILE = CMakeFiles/C_MSc.dir/dcl_threads.c.o.d
-  FLAGS = -O0 -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
+  FLAGS = -O0 -ggdb -lm -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
   OBJECT_DIR = CMakeFiles/C_MSc.dir
   OBJECT_FILE_DIR = CMakeFiles/C_MSc.dir
 
 build CMakeFiles/C_MSc.dir/dcl_fsm.c.o: C_COMPILER__C_MSc_Debug /Users/dan/C_Projects/C_MSc/dcl_fsm.c || cmake_object_order_depends_target_C_MSc
   DEP_FILE = CMakeFiles/C_MSc.dir/dcl_fsm.c.o.d
-  FLAGS = -O0 -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
+  FLAGS = -O0 -ggdb -lm -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
   OBJECT_DIR = CMakeFiles/C_MSc.dir
   OBJECT_FILE_DIR = CMakeFiles/C_MSc.dir
 
 build CMakeFiles/C_MSc.dir/dcl_dcode.c.o: C_COMPILER__C_MSc_Debug /Users/dan/C_Projects/C_MSc/dcl_dcode.c || cmake_object_order_depends_target_C_MSc
   DEP_FILE = CMakeFiles/C_MSc.dir/dcl_dcode.c.o.d
-  FLAGS = -O0 -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
+  FLAGS = -O0 -ggdb -lm -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7 -fcolor-diagnostics
   OBJECT_DIR = CMakeFiles/C_MSc.dir
   OBJECT_FILE_DIR = CMakeFiles/C_MSc.dir
 
@@ -108,8 +108,8 @@ build CMakeFiles/C_MSc.dir/dcl_dcode.c.o: C_COMPILER__C_MSc_Debug /Users/dan/C_P
 #############################################
 # Link the executable C_MSc
 
-build C_MSc: C_EXECUTABLE_LINKER__C_MSc_Debug CMakeFiles/C_MSc.dir/main.c.o CMakeFiles/C_MSc.dir/dcl_msgQueue.c.o CMakeFiles/C_MSc.dir/dcl_serial.c.o CMakeFiles/C_MSc.dir/dcl_string.c.o CMakeFiles/C_MSc.dir/dcl_triKont.c.o CMakeFiles/C_MSc.dir/dcl_fsm_triKont.c.o CMakeFiles/C_MSc.dir/dcl_threads.c.o CMakeFiles/C_MSc.dir/dcl_fsm.c.o CMakeFiles/C_MSc.dir/dcl_dcode.c.o
-  FLAGS = -O0 -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7
+build C_MSc: C_EXECUTABLE_LINKER__C_MSc_Debug CMakeFiles/C_MSc.dir/main.c.o CMakeFiles/C_MSc.dir/dcl_structs.c.o CMakeFiles/C_MSc.dir/dcl_serial.c.o CMakeFiles/C_MSc.dir/dcl_string.c.o CMakeFiles/C_MSc.dir/dcl_triKont.c.o CMakeFiles/C_MSc.dir/dcl_fsm_triKont.c.o CMakeFiles/C_MSc.dir/dcl_threads.c.o CMakeFiles/C_MSc.dir/dcl_fsm.c.o CMakeFiles/C_MSc.dir/dcl_dcode.c.o
+  FLAGS = -O0 -ggdb -lm -v -Wall -Werror -fno-omit-frame-pointer -fsanitize=address -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk -mmacosx-version-min=11.7
   OBJECT_DIR = CMakeFiles/C_MSc.dir
   POST_BUILD = :
   PRE_LINK = :

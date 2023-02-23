@@ -12,7 +12,7 @@
 #include <math.h>
 
 #include "dcl_config.h"
-#include "dcl_msgQueue.h"
+#include "dcl_structs.h"
 #include "dcl_fsm.h"
 
 /* Bitfield defines for dcode status */

@@ -7,7 +7,7 @@
 #include <pthread.h>
 #include <time.h>
 #include "dcl_config.h"
-#include "dcl_msgQueue.h"
+#include "dcl_structs.h"
 
 /* Msg Return Definitions*/
 enum {  MSGERR, // Pop returned NULL

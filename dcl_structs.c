@@ -1,8 +1,10 @@
-//
-// Created by daniel on 16/01/23.
-//
+/*******************************************************************************
+ * Copyright (c) 2023. Daniel Janse van Rensburg - All Rights Reserved
+ * Dan's Control Library (DCL) is subject to future license changes.
+ ******************************************************************************/
+/* Created by daniel on 16/01/23. */
 
-#include "dcl_msgQueue.h"
+#include "dcl_structs.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

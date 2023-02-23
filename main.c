@@ -1,3 +1,9 @@
+
+/*******************************************************************************
+ * Copyright (c) 2023. Daniel Janse van Rensburg - All Rights Reserved
+ * Dan's Control Library (DCL) is subject to future license changes.
+ ******************************************************************************/
+
 #include <pthread.h>
 #include <string.h>
 #include "dcl_triKont.h"
