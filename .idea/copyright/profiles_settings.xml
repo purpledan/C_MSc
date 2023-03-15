@@ -1,0 +1,16 @@
+<component name="CopyrightManager">
+  <settings default="DCL_Copyright">
+    <module2copyright>
+      <element module="Project Files" copyright="DCL_Copyright" />
+    </module2copyright>
+    <LanguageOptions name="ObjectiveC">
+      <option name="fileTypeOverride" value="3" />
+      <option name="addBlankAfter" value="false" />
+      <option name="separateBefore" value="true" />
+      <option name="separateAfter" value="true" />
+    </LanguageOptions>
+    <LanguageOptions name="__TEMPLATE__">
+      <option name="block" value="false" />
+    </LanguageOptions>
+  </settings>
+</component>

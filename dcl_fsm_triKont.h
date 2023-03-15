@@ -1,12 +1,29 @@
-//
-// Created by Daniel on 2023/01/23.
-//
+/*******************************************************************************
+ * Copyright (c) 2023. Daniel Janse van Rensburg - All Rights Reserved
+ * Dan's Control Library (DCL) is subject to future license changes.
+ ******************************************************************************/
+/* Created by Daniel on 2023/01/23. */
 
 #ifndef C_MSC_DCL_FSM_TRIKONT_H
 #define C_MSC_DCL_FSM_TRIKONT_H
 #include <stdbool.h>
 #include "dcl_triKont.h"
 #include "dcl_fsm.h"
+
+/*  Files: dcl_fsm_triKont.h & dcl_fsm_triKont.c
+ *  Implements message queue based finite state machine to control Tricontinent C3000 pumps
+ *
+ *  Messages are in the format:
+ *  Pump-address,command,argument1,argument2
+ *  [d,sss,d,dddd]
+ *
+ *  Possible Commands:
+ *  PSH
+ *  PUL
+ *  CFG
+ *  SET
+ */
+
 /* Bitfield defines for triC_fsm status */
 #define MSGRDY  0b00000001      // A MSG is ready for action
 #define ACTBSY  0b00000010      // FSM is busy executing MSG in buffer
