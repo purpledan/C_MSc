@@ -20,9 +20,10 @@ void *pumpThread(void *arg) {
              [state_terminate] = state_triC_terminate};
     state_triC next_state = state_init;
 
-    dcl_serialDevice *dev_trikC3000 = dcl_triC_setup("TriKont Syringe",
-                                                    "/dev/ttyUSB0",
-                                                    0);
+    int addr_array[DCL_TRIC_PUMPNO] = {0, 1, 2};
+    dcl_serialDevice_triC *dev_trikC3000 = dcl_triC_multiSetup("TriKont Syringe",
+                                                         "/dev/ttyUSB0",
+                                                         addr_array);
     if (!dev_trikC3000) {
         abort();
     }
@@ -37,7 +38,7 @@ void *pumpThread(void *arg) {
         next_state = fsm_triC[next_state](thread_cluster);
     }
 
-    dcl_serial_close(dev_trikC3000);
+    dcl_triC_destroy(dev_trikC3000);
     return 0;
 }
 

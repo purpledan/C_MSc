@@ -59,11 +59,11 @@ typedef enum state_triC {
 
 typedef struct triC_fsm_cluster {
     dcl_fsm_cluster_type *fsm;          // Generic FSM cluster
-    dcl_serialDevice *device_in;        // Generic Device in
-    dcl_triC_status *status_in;         // TriC status pointer from device_in
+    dcl_serialDevice_triC *device_in;  // TriC Device in
     pthread_mutex_t *ext_mutex;         // Link to external status mutex
     dcl_triC_status *external;          // Link to external status
     action_triC nxt_cmd;
+    int addr_arg;
     int arg1;
     int arg2;
     char state_field;
@@ -74,7 +74,7 @@ typedef struct triC_fsm_cluster {
 
 //void state_triC_create(state_triC *fsm_array);
 triC_fsm_cluster *state_triC_fsmSetup(dcl_queue_type *fsm_msg_queue,
-                                      dcl_serialDevice *triC_dev,
+                                      dcl_serialDevice_triC *triC_dev,
                                       pthread_mutex_t *ext_mutex,
                                       dcl_triC_status *ext_status);
 state_triC state_triC_init(triC_fsm_cluster *cluster_in);
