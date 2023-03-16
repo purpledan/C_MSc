@@ -47,6 +47,7 @@ void dcl_triC_aspirate(dcl_serialDevice_triC *device_in, int value);
 void dcl_triC_dispense(dcl_serialDevice_triC *device_in, int value);
 void dcl_triC_aspirateAtomic(dcl_serialDevice_triC *device_in, int valveNo, int value);
 void dcl_triC_dispenseAtomic(dcl_serialDevice_triC *device_in, int valveNo, int value);
+void dcl_triC_setAtomic(dcl_serialDevice_triC *device_in, int valveNo, int value);
 void dcl_triC_getStatus(dcl_serialDevice_triC *device_in);
 void dcl_triC_getSetup(dcl_serialDevice_triC *device_in);
 int dcl_triC_getValve(dcl_serialDevice_triC *device_in);

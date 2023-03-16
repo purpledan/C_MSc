@@ -126,6 +126,19 @@ void dcl_triC_dispenseAtomic(dcl_serialDevice_triC *device_in, int valveNo, int 
     dcl_triC_read(device_in, read_buf);
 }
 
+void dcl_triC_setAtomic(dcl_serialDevice_triC *device_in, int valveNo, int value) {
+    char cmd[TRIC_PRE_BUF] = "";
+    // TODO: Implement limit based on resolution
+    if (valveNo >= device_in->dev_status_array[device_in->dev_select].valve) {
+        sprintf(cmd, "I%dA%dR", valveNo, value);
+    } else {
+        sprintf(cmd, "O%dA%dR", valveNo, value);
+    }
+    char read_buf[TRIC_READ_BUF] = "";
+    dcl_triC_write(device_in, cmd);
+    dcl_triC_read(device_in, read_buf);
+}
+
 void dcl_triC_getStatus(dcl_serialDevice_triC *device_in) {
     size_t i = device_in->dev_select;
     device_in->dev_status_array[i].valve = dcl_triC_getValve(device_in);

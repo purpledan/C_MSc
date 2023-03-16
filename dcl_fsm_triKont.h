@@ -27,9 +27,7 @@
 /* Bitfield defines for triC_fsm status */
 #define MSGRDY  0b00000001      // A MSG is ready for action
 #define ACTBSY  0b00000010      // FSM is busy executing MSG in buffer
-#define SPBUSY  0b00000100      // Syringe pump is busy performing an action
-#define LSTACT  0b00001000      // Action performing last move
-#define ARGSEL  0b00010000      // True for Valve Mov, False for Plunger Mov
+#define SPBUSY  0b00000100      // Selected pump is busy
 
 /* Cmd enum */
 typedef enum action_triC {
@@ -87,7 +85,6 @@ state_triC state_triC_critical(triC_fsm_cluster *cluster_in);
 state_triC state_triC_terminate(triC_fsm_cluster *cluster_in);
 int ext_triC_updateStatus(triC_fsm_cluster *cluster_in);
 void aux_triC_parseMsg(triC_fsm_cluster *cluster_in);
-void action_triC_sel(triC_fsm_cluster *cluster_in);
 void action_triC_psh(triC_fsm_cluster *cluster_in);
 void action_triC_pul(triC_fsm_cluster *cluster_in);
 void action_triC_set(triC_fsm_cluster *cluster_in);

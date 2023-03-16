@@ -182,14 +182,14 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
     }
     if (valve_in) {
         sprintf(cluster_in->current_step->block[cluster_in->current_step->index],
-                "PUL,%d,%d",
+                "1,PUL,%d,%d",
                 valve_in,
                 amount);
         cluster_in->current_step->index++;
     }
     if (valve_out) {
         sprintf(cluster_in->current_step->block[cluster_in->current_step->index],
-                "PSH,%d,%d",
+                "1,PSH,%d,%d",
                 valve_out,
                 amount);
         cluster_in->current_step->index++;

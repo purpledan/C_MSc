@@ -61,13 +61,9 @@ state_triC state_triC_init(triC_fsm_cluster *cluster_in) {
 }
 
 state_triC state_triC_idle(triC_fsm_cluster *cluster_in) {
-    if ( cluster_in->fsm->opt_field & ACTBSY ) {
-        /* An action is being performed */
-        if ( cluster_in->fsm->opt_field & SPBUSY ) {
-            /* and the pump is busy */
-            return state_transient;
-        }
-        return state_action;
+    /* Is selected pump busy? */
+    if ( cluster_in->fsm->opt_field & SPBUSY ) {
+        return state_transient;
     } else {
         /* There is no action being performed */
         /* Is there a message ready for us? */
@@ -108,12 +104,14 @@ state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in) {
 
 state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
     printf("Performing: ");
-    /* If there is no action being performed, we start a new one */
-    cluster_in->fsm->opt_field |= ACTBSY;
-    cluster_in->fsm->opt_field |= LSTACT;
+
     aux_triC_parseMsg(cluster_in);
     cluster_in->fsm->opt_field &= ~MSGRDY;
-
+    if ( dcl_triC_isBusy(cluster_in->device_in, cluster_in->addr_arg) ) {
+        cluster_in->fsm->opt_field |= SPBUSY;
+        return state_idle;
+    }
+    cluster_in->device_in->dev_select = cluster_in->addr_arg;
     dcl_triC_getStatus(cluster_in->device_in);
     switch (cluster_in->nxt_cmd) {
         case action_pul:
@@ -138,18 +136,12 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
 }
 
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in) {
-    //int ret_flag;
-
     /* Pump in transient, get status of pump */
     dcl_triC_getStatus(cluster_in->device_in);
-    if ( cluster_in->device_in->dev_status_array[0].statusByte == '@' ) {
+    if ( cluster_in->device_in->dev_status_array[cluster_in->addr_arg].statusByte == '@' ) {
         cluster_in->fsm->opt_field |= SPBUSY;
     } else {
         cluster_in->fsm->opt_field &= ~SPBUSY;
-    }
-
-    if ( (cluster_in->fsm->opt_field & LSTACT) && !(cluster_in->fsm->opt_field & SPBUSY) ) {
-        cluster_in->fsm->opt_field &= ~ACTBSY;
     }
 
     /* We may use this downtime to update the external status */
@@ -244,46 +236,23 @@ void aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
     }
 }
 
-void action_triC_sel(triC_fsm_cluster *cluster_in) {
-    printf("Valve move to: %d\n", cluster_in->arg1);
-    dcl_triC_setValve(cluster_in->device_in, cluster_in->arg1);
-    cluster_in->fsm->opt_field &= ~ARGSEL;
-}
-
 void action_triC_psh(triC_fsm_cluster *cluster_in) {
     printf("Dispensing %d from valve %d\n", cluster_in->arg2, cluster_in->arg1);
-    dcl_triC_dispenseAtomic(cluster_in->device_in,
-                            cluster_in->arg1,
-                            cluster_in->arg2);
-    /* The SP should be busy moving now */
-    cluster_in->fsm->opt_field |= SPBUSY;
+    dcl_triC_dispenseAtomic(cluster_in->device_in,cluster_in->arg1,cluster_in->arg2);
 }
 void action_triC_pul(triC_fsm_cluster *cluster_in) {
-    printf("Aspirating %d from valve %d\n", cluster_in->arg2, cluster_in->arg1);
-    dcl_triC_aspirateAtomic(cluster_in->device_in,
-                            cluster_in->arg1,
-                            cluster_in->arg2);
-    /* The SP should be busy moving now */
-    cluster_in->fsm->opt_field |= SPBUSY;
-
+    printf("Aspirating %d from valve %d\n",
+           cluster_in->arg2, cluster_in->arg1);
+    dcl_triC_aspirateAtomic(cluster_in->device_in,cluster_in->arg1,cluster_in->arg2);
 }
 
 void action_triC_set(triC_fsm_cluster *cluster_in) {
-    if ( cluster_in->fsm->opt_field & ARGSEL ) {
-        action_triC_sel(cluster_in);
-    } else {
-        cluster_in->fsm->opt_field |= LSTACT;
-        printf("Setting Plunger %d\n", cluster_in->arg2);
-        dcl_triC_setPlunger(cluster_in->device_in, cluster_in->arg2);
-    }
-    /* The SP should be busy moving now */
-    cluster_in->fsm->opt_field |= SPBUSY;
-
+    printf("Setting Valve to %d and plunger to %d\n", cluster_in->arg1, cluster_in->arg2);
+    dcl_triC_setAtomic(cluster_in->device_in, cluster_in->arg1, cluster_in->arg2);
 }
 
 void action_triC_cfg(triC_fsm_cluster *cluster_in) {
     /* No action, only changing a setting */
-    cluster_in->fsm->opt_field &= ~ACTBSY;
     switch (cluster_in->arg1) {
         case setting_speed:
             dcl_triC_setSpeed(cluster_in->device_in, cluster_in->arg2);
