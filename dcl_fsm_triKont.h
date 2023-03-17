@@ -29,7 +29,7 @@
 #define ACTBSY  0b00000010      // FSM is busy executing MSG in buffer
 #define SPBUSY  0b00000100      // Pump busy
 #define BUFFUL  0b00001000      // Pump Buffer full
-#define BUFCOL  0b00010000      // Buffer collision occured
+#define BUFCOL  0b00010000      // Buffer collision occurred
 
 /* Cmd enum */
 typedef enum action_triC {
@@ -47,6 +47,7 @@ typedef enum setting_triC {
 typedef enum state_triC {
     state_init,
     state_action,
+    state_blockingAction,
     state_transient,
     state_idle,
     state_getMsg,
@@ -73,6 +74,8 @@ typedef struct triC_fsm_cluster {
     triC_fsm_buf *cmd_array;            // Device specific CMD buffer
     triC_fsm_buf cmd_buf;               // MSG in buffer
     action_triC nxt_cmd;
+    int nxt_blockingAct;                // Device to block and self action
+    int nxt_act;                        // Device to self action
     int addr_arg;
     int arg1;
     int arg2;
@@ -90,6 +93,7 @@ state_triC state_triC_init(triC_fsm_cluster *cluster_in);
 state_triC state_triC_idle(triC_fsm_cluster *cluster_in);
 state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in);
 state_triC state_triC_action(triC_fsm_cluster *cluster_in);
+state_triC state_triC_blockingAction(triC_fsm_cluster *cluster_in);
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in);
 state_triC state_triC_halt(triC_fsm_cluster *cluster_in);
 state_triC state_triC_critical(triC_fsm_cluster *cluster_in);

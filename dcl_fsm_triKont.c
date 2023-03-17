@@ -66,6 +66,21 @@ state_triC state_triC_init(triC_fsm_cluster *cluster_in) {
 }
 
 state_triC state_triC_idle(triC_fsm_cluster *cluster_in) {
+    /* Has a buffer collision occurred? */
+    if ( cluster_in->fsm->opt_field & BUFCOL ) {
+        /* Is this pump busy */
+        {
+            if ( cluster_in->cmd_array[cluster_in->cmd_buf.addr_arg].dev_flags & SPBUSY ) {
+                /* Wait until the device is done
+                 * This will block all incoming msgs until collision has resolved */
+                return state_transient;
+            } else {
+                /* Perform action from self buffer if pump is not busy*/
+                cluster_in->nxt_blockingAct = cluster_in->cmd_buf.addr_arg;
+                return state_blockingAction;
+            }
+        }
+    }
     /* Is there a full buffer somewhere? */
         /* Is selected pump busy? */
         if ( cluster_in->fsm->opt_field & SPBUSY ) {
@@ -110,30 +125,28 @@ state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in) {
 
 state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
     printf("Performing: ");
-    /* Parse and store MSG in staging buffer */
-    aux_triC_parseMsg(cluster_in);
-    /* Signal that MSG has been read from queue */
-    cluster_in->fsm->opt_field &= ~MSGRDY;
-    /* Attempt to store MSG in dev bufer */
-    int addr = cluster_in->cmd_buf.addr_arg;
-    if (cluster_in->cmd_array[addr].dev_flags & BUFFUL) {
-        cluster_in->cmd_array[addr].nxt_cmd = cluster_in->cmd_buf.nxt_cmd;
-        cluster_in->cmd_array[addr].arg1 = cluster_in->cmd_buf.arg1;
-        cluster_in->cmd_array[addr].arg2 = cluster_in->cmd_buf.arg2;
-        cluster_in->cmd_array[addr].dev_flags |= BUFFUL;
-    } else {
-        /* Buffer collision! */
-        cluster_in->fsm->opt_field |= BUFCOL;
-        return state_idle;
+    /* Is a buffer collision being resolved ?
+     * If not, we continue */
+    if ( !(cluster_in->fsm->opt_field & BUFCOL) ) {
+        /* Parse and store MSG in staging buffer */
+        aux_triC_parseMsg(cluster_in);
+        /* Signal that MSG has been read from queue */
+        cluster_in->fsm->opt_field &= ~MSGRDY;
+        /* Attempt to store MSG in dev buffer */
+        int addr = cluster_in->cmd_buf.addr_arg;
+        if ( !(cluster_in->cmd_array[addr].dev_flags & BUFFUL) ) {
+            cluster_in->cmd_array[addr].nxt_cmd = cluster_in->cmd_buf.nxt_cmd;
+            cluster_in->cmd_array[addr].arg1 = cluster_in->cmd_buf.arg1;
+            cluster_in->cmd_array[addr].arg2 = cluster_in->cmd_buf.arg2;
+            cluster_in->cmd_array[addr].dev_flags |= BUFFUL;
+        } else {
+            /* Buffer collision! */
+            cluster_in->fsm->opt_field |= BUFCOL;
+            return state_idle;
+        }
     }
 
 
-    /* Is device busy? */
-    if ( dcl_triC_isBusy(cluster_in->device_in, cluster_in->addr_arg) ) {
-        cluster_in->fsm->opt_field |= SPBUSY;
-        /* Device is busy, lets see if we can do something else instead */
-        return state_idle;
-    }
     /* The Buffer was empty and the pump was not busy, lets get to work */
     cluster_in->device_in->dev_select = cluster_in->addr_arg;
     dcl_triC_getStatus(cluster_in->device_in);
@@ -156,7 +169,36 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
             return state_critical;
     }
     /* At this point the buffer has been read, clear the flag */
-    cluster_in->cmd_array[addr].dev_flags &= ~BUFFUL;
+    cluster_in->cmd_array[cluster_in->addr_arg].dev_flags &= ~BUFFUL;
+
+    return state_idle;
+}
+
+state_triC state_triC_blockingAction(triC_fsm_cluster *cluster_in) {
+    printf("Performing on self: ");
+    /* Pump is halting reading new MSGs until buffer collision is resolved */
+    cluster_in->device_in->dev_select = cluster_in->nxt_act;
+    dcl_triC_getStatus(cluster_in->device_in);
+    switch (cluster_in->nxt_cmd) {
+        case action_pul:
+            action_triC_pul(cluster_in);
+            break;
+        case action_psh:
+            action_triC_psh(cluster_in);
+            break;
+        case action_cfg:
+            action_triC_cfg(cluster_in);
+            break;
+        case action_set:
+            action_triC_set(cluster_in);
+            break;
+        case action_err:
+        default:
+            printf("CMD made no sense\n");
+            return state_critical;
+    }
+    /* At this point the buffer has been read, clear the flag */
+    cluster_in->cmd_array[cluster_in->nxt_act].dev_flags &= ~BUFFUL;
 
     return state_idle;
 }
@@ -263,18 +305,34 @@ void aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
 }
 
 void action_triC_psh(triC_fsm_cluster *cluster_in) {
-    printf("Dispensing %d from valve %d\n", cluster_in->arg2, cluster_in->arg1);
-    dcl_triC_dispenseAtomic(cluster_in->device_in,cluster_in->arg1,cluster_in->arg2);
+    int addr = (int)cluster_in->device_in->dev_select;
+    printf("Dispensing %d from valve %d\n",
+                            cluster_in->cmd_array[addr].arg2,
+                            cluster_in->cmd_array[addr].arg1);
+    dcl_triC_dispenseAtomic(cluster_in->device_in,
+                            cluster_in->cmd_array[addr].arg1,
+                            cluster_in->cmd_array[addr].arg2);
+    cluster_in->cmd_array[addr].dev_flags |= SPBUSY;
 }
 void action_triC_pul(triC_fsm_cluster *cluster_in) {
+    int addr = (int)cluster_in->device_in->dev_select;
     printf("Aspirating %d from valve %d\n",
-           cluster_in->arg2, cluster_in->arg1);
-    dcl_triC_aspirateAtomic(cluster_in->device_in,cluster_in->arg1,cluster_in->arg2);
+                             cluster_in->cmd_array[addr].arg2,
+                            cluster_in->cmd_array[addr].arg1);
+    dcl_triC_aspirateAtomic(cluster_in->device_in,
+                            cluster_in->cmd_array[addr].arg1,
+                            cluster_in->cmd_array[addr].arg2);
+    cluster_in->cmd_array[addr].dev_flags |= SPBUSY;
 }
 
 void action_triC_set(triC_fsm_cluster *cluster_in) {
-    printf("Setting Valve to %d and plunger to %d\n", cluster_in->arg1, cluster_in->arg2);
-    dcl_triC_setAtomic(cluster_in->device_in, cluster_in->arg1, cluster_in->arg2);
+    int addr = (int)cluster_in->device_in->dev_select;
+    printf("Setting Valve to %d and plunger to %d\n",
+           cluster_in->cmd_array[addr].arg1,
+           cluster_in->cmd_array[addr].arg2);
+    dcl_triC_setAtomic(cluster_in->device_in, cluster_in->cmd_array[addr].arg1,
+                       cluster_in->cmd_array[addr].arg2);
+    cluster_in->cmd_array[addr].dev_flags |= SPBUSY;
 }
 
 void action_triC_cfg(triC_fsm_cluster *cluster_in) {
