@@ -27,7 +27,9 @@
 /* Bitfield defines for triC_fsm status */
 #define MSGRDY  0b00000001      // A MSG is ready for action
 #define ACTBSY  0b00000010      // FSM is busy executing MSG in buffer
-#define SPBUSY  0b00000100      // Selected pump is busy
+#define SPBUSY  0b00000100      // Pump busy
+#define BUFFUL  0b00001000      // Pump Buffer full
+#define BUFCOL  0b00010000      // Buffer collision occured
 
 /* Cmd enum */
 typedef enum action_triC {
@@ -55,16 +57,25 @@ typedef enum state_triC {
     numStates
 } state_triC;
 
+typedef struct triC_fsm_buf {
+    char dev_flags;                     // Device specific flags
+    int addr_arg;                       // Device address
+    action_triC nxt_cmd;                // Next command to run
+    int arg1;
+    int arg2;
+}triC_fsm_buf;
+
 typedef struct triC_fsm_cluster {
     dcl_fsm_cluster_type *fsm;          // Generic FSM cluster
-    dcl_serialDevice_triC *device_in;  // TriC Device in
+    dcl_serialDevice_triC *device_in;   // TriC Device in
     pthread_mutex_t *ext_mutex;         // Link to external status mutex
     dcl_triC_status *external;          // Link to external status
+    triC_fsm_buf *cmd_array;            // Device specific CMD buffer
+    triC_fsm_buf cmd_buf;               // MSG in buffer
     action_triC nxt_cmd;
     int addr_arg;
     int arg1;
     int arg2;
-    char state_field;
     bool init_complete;                 // Init completed
     bool enable_external;               // Enable link to external status
     bool enable_log;                    // Enable writing log file

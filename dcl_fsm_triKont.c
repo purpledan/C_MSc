@@ -18,8 +18,13 @@ triC_fsm_cluster *state_triC_fsmSetup(dcl_queue_type *fsm_msg_queue,
     thread_cluster.device_in = triC_dev;
     thread_cluster.init_complete = false;
 
+    static triC_fsm_buf message_buf[DCL_TRIC_PUMPNO];
+    thread_cluster.cmd_array = message_buf;
+
     printf("Checking FSM Cluster\n");
     for (int i = 0; i < DCL_TRIC_PUMPNO; i++) {
+        thread_cluster.cmd_array[i].addr_arg = thread_cluster.device_in->dev_status_array[i].address;
+        thread_cluster.cmd_array[i].dev_flags = '\0';
         printf("Address %d is %d\n", i, thread_cluster.device_in->dev_status_array[i].address);
     }
 
@@ -61,8 +66,9 @@ state_triC state_triC_init(triC_fsm_cluster *cluster_in) {
 }
 
 state_triC state_triC_idle(triC_fsm_cluster *cluster_in) {
-    /* Is selected pump busy? */
-    if ( cluster_in->fsm->opt_field & SPBUSY ) {
+    /* Is there a full buffer somewhere? */
+        /* Is selected pump busy? */
+        if ( cluster_in->fsm->opt_field & SPBUSY ) {
         return state_transient;
     } else {
         /* There is no action being performed */
@@ -104,13 +110,31 @@ state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in) {
 
 state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
     printf("Performing: ");
-
+    /* Parse and store MSG in staging buffer */
     aux_triC_parseMsg(cluster_in);
+    /* Signal that MSG has been read from queue */
     cluster_in->fsm->opt_field &= ~MSGRDY;
-    if ( dcl_triC_isBusy(cluster_in->device_in, cluster_in->addr_arg) ) {
-        cluster_in->fsm->opt_field |= SPBUSY;
+    /* Attempt to store MSG in dev bufer */
+    int addr = cluster_in->cmd_buf.addr_arg;
+    if (cluster_in->cmd_array[addr].dev_flags & BUFFUL) {
+        cluster_in->cmd_array[addr].nxt_cmd = cluster_in->cmd_buf.nxt_cmd;
+        cluster_in->cmd_array[addr].arg1 = cluster_in->cmd_buf.arg1;
+        cluster_in->cmd_array[addr].arg2 = cluster_in->cmd_buf.arg2;
+        cluster_in->cmd_array[addr].dev_flags |= BUFFUL;
+    } else {
+        /* Buffer collision! */
+        cluster_in->fsm->opt_field |= BUFCOL;
         return state_idle;
     }
+
+
+    /* Is device busy? */
+    if ( dcl_triC_isBusy(cluster_in->device_in, cluster_in->addr_arg) ) {
+        cluster_in->fsm->opt_field |= SPBUSY;
+        /* Device is busy, lets see if we can do something else instead */
+        return state_idle;
+    }
+    /* The Buffer was empty and the pump was not busy, lets get to work */
     cluster_in->device_in->dev_select = cluster_in->addr_arg;
     dcl_triC_getStatus(cluster_in->device_in);
     switch (cluster_in->nxt_cmd) {
@@ -131,6 +155,8 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
             printf("CMD made no sense\n");
             return state_critical;
     }
+    /* At this point the buffer has been read, clear the flag */
+    cluster_in->cmd_array[addr].dev_flags &= ~BUFFUL;
 
     return state_idle;
 }
@@ -218,21 +244,21 @@ void aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
     char temp_string[8] = "";
 
     sscanf(cluster_in->fsm->msg_buf.argstr, "%d,%[A-Z],%d,%d",
-           &cluster_in->addr_arg,
+           &cluster_in->cmd_buf.addr_arg,
            temp_string,
-           &cluster_in->arg1,
-           &cluster_in->arg2);
+           &cluster_in->cmd_buf.arg1,
+           &cluster_in->cmd_buf.arg2);
 
     if (!strcmp("PSH", temp_string)) {
-        cluster_in->nxt_cmd = action_psh;
+        cluster_in->cmd_buf.nxt_cmd = action_psh;
     } else if (!strcmp("PUL", temp_string)) {
-        cluster_in->nxt_cmd = action_pul;
+        cluster_in->cmd_buf.nxt_cmd = action_pul;
     } else if (!strcmp("CFG", temp_string)) {
-        cluster_in->nxt_cmd = action_cfg;
+        cluster_in->cmd_buf.nxt_cmd = action_cfg;
     } else if (!strcmp("SET", temp_string)) {
-        cluster_in->nxt_cmd = action_set;
+        cluster_in->cmd_buf.nxt_cmd = action_set;
     } else {
-        cluster_in->nxt_cmd = action_err;
+        cluster_in->cmd_buf.nxt_cmd = action_err;
     }
 }
 
