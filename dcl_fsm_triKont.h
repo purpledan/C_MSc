@@ -26,7 +26,6 @@
 
 /* Bitfield defines for triC_fsm status */
 #define MSGRDY  0b00000001      // A MSG is ready for action
-#define ACTBSY  0b00000010      // FSM is busy executing MSG in buffer
 #define SPBUSY  0b00000100      // Pump busy
 #define BUFFUL  0b00001000      // Pump Buffer full
 #define BUFCOL  0b00010000      // Buffer collision occurred
@@ -100,6 +99,8 @@ state_triC state_triC_critical(triC_fsm_cluster *cluster_in);
 state_triC state_triC_terminate(triC_fsm_cluster *cluster_in);
 int ext_triC_updateStatus(triC_fsm_cluster *cluster_in);
 void aux_triC_parseMsg(triC_fsm_cluster *cluster_in);
+/* Updates all SPBUSY flags, requires multiStatus update first */
+void aux_triC_updateBusyStatus(triC_fsm_cluster *cluster_in);
 void action_triC_psh(triC_fsm_cluster *cluster_in);
 void action_triC_pul(triC_fsm_cluster *cluster_in);
 void action_triC_set(triC_fsm_cluster *cluster_in);
