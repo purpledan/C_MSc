@@ -26,6 +26,7 @@
 
 /* Bitfield defines for triC_fsm status */
 #define MSGRDY  0b00000001      // A MSG is ready for action
+#define SYNCRO  0b00000010      // Halts execution until no SPs are busy
 #define SPBUSY  0b00000100      // Pump busy
 #define BUFFUL  0b00001000      // Pump Buffer full
 #define BUFCOL  0b00010000      // Buffer collision occurred
@@ -36,6 +37,7 @@ typedef enum action_triC {
     action_psh,                 // PSH string command
     action_cfg,                 // CFG string command
     action_set,                 // SET string command
+    action_syn,                 // SYN string command
     action_err                  // Parse failure
 } action_triC;
 
@@ -46,7 +48,7 @@ typedef enum setting_triC {
 typedef enum state_triC {
     state_init,
     state_action,
-    state_blockingAction,
+    state_singleAction,
     state_transient,
     state_idle,
     state_getMsg,
@@ -92,7 +94,7 @@ state_triC state_triC_init(triC_fsm_cluster *cluster_in);
 state_triC state_triC_idle(triC_fsm_cluster *cluster_in);
 state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in);
 state_triC state_triC_action(triC_fsm_cluster *cluster_in);
-state_triC state_triC_blockingAction(triC_fsm_cluster *cluster_in);
+state_triC state_triC_singleAction(triC_fsm_cluster *cluster_in);
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in);
 state_triC state_triC_halt(triC_fsm_cluster *cluster_in);
 state_triC state_triC_critical(triC_fsm_cluster *cluster_in);

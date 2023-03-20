@@ -143,9 +143,10 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
             cluster_in->device_in->dev_select = addr;
         } else {
             /* Buffer collision! */
-            cluster_in->fsm->opt_field |= MSGRDY;   // We don't want to write over the current message yet
-            cluster_in->nxt_blockingAct = addr;     // Remember the device that is blocking
-            cluster_in->fsm->opt_field |= BUFCOL;
+            cluster_in->fsm->opt_field |= MSGRDY;           // We don't want to write over the current message yet
+            cluster_in->nxt_blockingAct = addr;             // Remember the device that is blocking
+            cluster_in->cmd_array[addr].dev_flags |= BUFCOL;// Flag the specific dev
+            cluster_in->fsm->opt_field |= BUFCOL;           // Flag the overall status too
             return state_idle;
         }
     }
@@ -175,7 +176,7 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
     return state_idle;
 }
 
-state_triC state_triC_blockingAction(triC_fsm_cluster *cluster_in) {
+state_triC state_triC_singleAction(triC_fsm_cluster *cluster_in) {
     printf("Performing on self: ");
     /* Pump is halting reading new MSGs until buffer collision is resolved */
     cluster_in->device_in->dev_select = cluster_in->nxt_act;
@@ -193,24 +194,46 @@ state_triC state_triC_blockingAction(triC_fsm_cluster *cluster_in) {
         case action_set:
             action_triC_set(cluster_in);
             break;
+        case action_syn:
+            cluster_in->fsm->opt_field |= SYNCRO;
+            break;
         case action_err:
         default:
             printf("CMD made no sense\n");
             return state_critical;
     }
     /* At this point the buffer has been read, clear the flag */
-    cluster_in->cmd_array[cluster_in->nxt_act].dev_flags &= ~BUFFUL;
+    cluster_in->cmd_array[cluster_in->device_in->dev_select].dev_flags &= ~BUFFUL;
 
     return state_idle;
 }
 
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in) {
-    /* Pump(s) in transient, get status of all pumps */
+    /* Pump(s) in transient, get status of all SPs */
     dcl_triC_multiGetStatus(cluster_in->device_in);
+    /* Also updates the global flag if any single SP is busy */
     aux_triC_updateBusyStatus(cluster_in);
 
-    /* Is there any pumps with a full buffer and not busy? */
-    //TODO!
+    /* If we are in SYNCRO mode, we halt all SP actions until last action is complete */
+    if ( cluster_in->fsm->opt_field & SYNCRO ) {
+        /* Turn off SYNCRO mode if no pumps are busy */
+        if ( !(cluster_in->fsm->opt_field & SPBUSY) ) {
+            cluster_in->fsm->opt_field &= ~SYNCRO;
+        }
+    } else {
+        /* Is there any SPs with a full buffer and not busy? Excluding the pump in BUFCOL */
+        for (int i = 0; i < DCL_TRIC_PUMPNO; i++) {
+            if (cluster_in->cmd_array[i].addr_arg & BUFCOL) {
+                continue;
+            } else if (cluster_in->cmd_array[i].dev_flags & BUFFUL) {
+                if ( !(cluster_in->cmd_array[i].dev_flags & SPBUSY) ) {
+                    cluster_in->nxt_act = cluster_in->cmd_array[i].addr_arg;
+                    return state_singleAction;
+                }
+            }
+        }
+    }
+
 
     /* We may use this downtime to update the external status */
     ext_triC_updateStatus(cluster_in);
@@ -299,18 +322,27 @@ void aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
         cluster_in->cmd_buf.nxt_cmd = action_cfg;
     } else if (!strcmp("SET", temp_string)) {
         cluster_in->cmd_buf.nxt_cmd = action_set;
+    } else if (!strcmp("SYN", temp_string)) {
+        cluster_in->cmd_buf.nxt_cmd = action_syn;
     } else {
         cluster_in->cmd_buf.nxt_cmd = action_err;
     }
 }
 
 void aux_triC_updateBusyStatus(triC_fsm_cluster *cluster_in) {
+    bool temp_flag = false;
     for (int i = 0; i < DCL_TRIC_PUMPNO; i++) {
         if ( cluster_in->device_in->dev_status_array[i].statusByte == 'Q') {
             cluster_in->cmd_array[i].dev_flags |= SPBUSY;
+            temp_flag = true;
         } else {
             cluster_in->cmd_array[i].dev_flags &= ~SPBUSY;
         }
+    }
+    if (temp_flag) {
+        cluster_in->fsm->opt_field |= SPBUSY;
+    } else {
+        cluster_in->fsm->opt_field &= ~SPBUSY;
     }
 }
 
