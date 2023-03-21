@@ -1,6 +1,15 @@
-//
-// Created by Daniel on 2022/11/23.
-//
+/*******************************************************************************
+ * Copyright (c) 2023. Daniel Janse van Rensburg - All Rights Reserved
+ * Dan's Control Library (DCL) is subject to future license changes.
+ ******************************************************************************/
+/* Created by Daniel on 2022/11/23. */
+
+/*  Files: dcl_triKont.h & dcl_triKont.c
+ *  Library to control Tricontinent C3000 pumps
+ *
+ *  Uses POSIX to open and communicate with a serial device
+ *  
+ */
 
 #ifndef LIB_DCL_TRIKONT_H
 #define LIB_DCL_TRIKONT_H

@@ -4,12 +4,6 @@
  ******************************************************************************/
 /* Created by Daniel on 2023/01/23. */
 
-#ifndef C_MSC_DCL_FSM_TRIKONT_H
-#define C_MSC_DCL_FSM_TRIKONT_H
-#include <stdbool.h>
-#include "dcl_triKont.h"
-#include "dcl_fsm.h"
-
 /*  Files: dcl_fsm_triKont.h & dcl_fsm_triKont.c
  *  Implements message queue based finite state machine to control Tricontinent C3000 pumps
  *
@@ -23,6 +17,13 @@
  *  CFG
  *  SET
  */
+
+#ifndef C_MSC_DCL_FSM_TRIKONT_H
+#define C_MSC_DCL_FSM_TRIKONT_H
+
+#include <stdbool.h>
+#include "dcl_triKont.h"
+#include "dcl_fsm.h"
 
 /* Bitfield defines for triC_fsm status */
 #define MSGRDY  0b00000001      // A MSG is ready for action

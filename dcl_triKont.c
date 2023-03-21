@@ -1,6 +1,8 @@
-//
-// Created by Daniel on 2022/11/23.
-//
+/*******************************************************************************
+ * Copyright (c) 2023. Daniel Janse van Rensburg - All Rights Reserved
+ * Dan's Control Library (DCL) is subject to future license changes.
+ ******************************************************************************/
+/* Created by Daniel on 2022/11/23 */
 
 #include "dcl_triKont.h"
 
