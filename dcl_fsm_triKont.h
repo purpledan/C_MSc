@@ -31,6 +31,7 @@
 #define SPBUSY  0b00000100      // Pump busy
 #define BUFFUL  0b00001000      // Pump Buffer full
 #define BUFCOL  0b00010000      // Buffer collision occurred
+#define ACTRDY  0b00100000      // Action is ready on some SP
 
 /* Cmd enum */
 typedef enum action_triC {
@@ -48,8 +49,8 @@ typedef enum setting_triC {
 
 typedef enum state_triC {
     state_init,
+    state_supervise,
     state_action,
-    state_singleAction,
     state_transient,
     state_idle,
     state_getMsg,
@@ -94,8 +95,8 @@ triC_fsm_cluster *state_triC_fsmSetup(dcl_queue_type *fsm_msg_queue,
 state_triC state_triC_init(triC_fsm_cluster *cluster_in);
 state_triC state_triC_idle(triC_fsm_cluster *cluster_in);
 state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in);
+state_triC state_triC_supervise(triC_fsm_cluster *cluster_in);
 state_triC state_triC_action(triC_fsm_cluster *cluster_in);
-state_triC state_triC_singleAction(triC_fsm_cluster *cluster_in);
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in);
 state_triC state_triC_halt(triC_fsm_cluster *cluster_in);
 state_triC state_triC_critical(triC_fsm_cluster *cluster_in);

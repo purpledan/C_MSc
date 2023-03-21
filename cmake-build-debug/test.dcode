@@ -2,7 +2,7 @@
 # Config block
 
 !_CONFIG
-SPEED = 14
+SPEED = 17
 1 = ETH
 2 = WATER
 3 = PURGEA
@@ -13,8 +13,8 @@ SPEED = 14
 
 # Steps are written like this
 !STEP_1
-    ETH->PURGEC;1ML
-    WATER->PURGED;1ML
+    ETH->PURGEC;3ML
+    WATER->PURGED;3ML
 @STEP_1
 
 !RUN

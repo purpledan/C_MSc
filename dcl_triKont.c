@@ -186,10 +186,9 @@ int dcl_triC_getPlunger(dcl_serialDevice_triC *device_in) {
 char dcl_triC_getSByte(dcl_serialDevice_triC *device_in) {
     char read_buf[TRIC_READ_BUF] = "";
     char *data = NULL;
-    char status_byte = '\0';
     dcl_triC_write(device_in, "Q");
     dcl_triC_read(device_in, read_buf);
-    status_byte = dcl_triC_parse(read_buf, &data);
+    char status_byte = dcl_triC_parse(read_buf, &data);
 
     return status_byte;
 }
