@@ -59,7 +59,9 @@ state_triC state_triC_init(triC_fsm_cluster *cluster_in) {
 
     }
     cluster_in->device_in->dev_select = 1;
-    dcl_triC_setSpeed(cluster_in->device_in, 17);
+    dcl_triC_setSpeed(cluster_in->device_in, 15);
+    cluster_in->device_in->dev_select = 2;
+    dcl_triC_setSpeed(cluster_in->device_in, 14);
     cluster_in->device_in->dev_select = 0;
     sleep(7);       // TODO: Add way so that state_transient is used instead
 
@@ -86,7 +88,6 @@ state_triC state_triC_idle(triC_fsm_cluster *cluster_in) {
             }
         }
     } else {
-        /* There is no action being performed */
         /* Is there a message ready for us? */
         if ( cluster_in->fsm->opt_field & MSGRDY ) {
             /* Read Msg and perform action */
@@ -94,8 +95,14 @@ state_triC state_triC_idle(triC_fsm_cluster *cluster_in) {
         } else {
             /* There is no MSG in the buffer ready */
             if (cluster_in->fsm->queue_empty) {
-                /* Queue is empty, we goto wait*/
-                return state_idle;
+                /* but there is an action ready */
+                if (cluster_in->fsm->opt_field & ACTRDY) {
+                    /* Stay in transient*/
+                    return state_transient;
+                } else {
+                    /* Queue is empty, we goto wait*/
+                    return state_halt;
+                }
             } else {
                 /* We get a new msg from the queue */
                 return state_getMsg;
@@ -116,7 +123,7 @@ state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in) {
             cluster_in->fsm->opt_field |= MSGRDY;
             return state_idle;
         case NOMSGS:
-            return state_halt;
+            return state_idle;
         case MSGERR:
         default:
             return state_critical;
@@ -128,6 +135,8 @@ state_triC state_triC_supervise(triC_fsm_cluster *cluster_in) {
     if ( cluster_in->fsm->opt_field & BUFCOL ) {
         /* A buffer collision occurred and is being resolved */
         cluster_in->device_in->dev_select = cluster_in->nxt_blockingAct;
+        cluster_in->cmd_array[cluster_in->nxt_blockingAct].dev_flags &= ~BUFCOL;
+        cluster_in->fsm->opt_field &= ~BUFCOL;
     } else {
         /* There was no collision previously, so we go on as normal */
         /* Parse and store MSG in staging buffer */
@@ -141,6 +150,7 @@ state_triC state_triC_supervise(triC_fsm_cluster *cluster_in) {
             cluster_in->cmd_array[addr].arg1 = cluster_in->cmd_buf.arg1;
             cluster_in->cmd_array[addr].arg2 = cluster_in->cmd_buf.arg2;
             cluster_in->cmd_array[addr].dev_flags |= BUFFUL;
+            cluster_in->fsm->opt_field |= ACTRDY;
             cluster_in->device_in->dev_select = addr;
         } else {
             /* Buffer collision! */
@@ -160,6 +170,7 @@ state_triC state_triC_supervise(triC_fsm_cluster *cluster_in) {
 
     if (cluster_in->cmd_array[cluster_in->device_in->dev_select].dev_flags & BUFFUL) {
         if ( !(cluster_in->cmd_array[cluster_in->device_in->dev_select].dev_flags & SPBUSY) ) {
+
             return state_action;
         }
     }
@@ -194,9 +205,10 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
 
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in) {
     /* Pump(s) in transient, get status of all SPs */
-    dcl_triC_multiGetStatus(cluster_in->device_in);
     /* Also updates the global flag if any single SP is busy */
     aux_triC_updateBusyStatus(cluster_in);
+    /* Updates ACTRDY status */
+    aux_triC_updateActionStatus(cluster_in);
 
     /* If we are in SYNCRO mode, we halt all SP actions until last action is complete */
     if ( cluster_in->fsm->opt_field & SYNCRO ) {
@@ -207,7 +219,7 @@ state_triC state_triC_transient(triC_fsm_cluster *cluster_in) {
     } else {
         /* Is there any SPs with a full buffer and not busy? Excluding the pump in BUFCOL */
         for (int i = 0; i < DCL_TRIC_PUMPNO; i++) {
-            if (cluster_in->cmd_array[i].addr_arg & BUFCOL) {
+            if (cluster_in->cmd_array[i].dev_flags & BUFCOL) {
                 continue;
             } else if (cluster_in->cmd_array[i].dev_flags & BUFFUL) {
                 if ( !(cluster_in->cmd_array[i].dev_flags & SPBUSY) ) {
@@ -315,6 +327,7 @@ void aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
 }
 
 void aux_triC_updateBusyStatus(triC_fsm_cluster *cluster_in) {
+    dcl_triC_multiGetStatus(cluster_in->device_in);
     bool temp_flag = false;
     for (int i = 0; i < DCL_TRIC_PUMPNO; i++) {
         if ( cluster_in->device_in->dev_status_array[i].statusByte == '@') {
@@ -328,6 +341,20 @@ void aux_triC_updateBusyStatus(triC_fsm_cluster *cluster_in) {
         cluster_in->fsm->opt_field |= SPBUSY;
     } else {
         cluster_in->fsm->opt_field &= ~SPBUSY;
+    }
+}
+
+void aux_triC_updateActionStatus(triC_fsm_cluster *cluster_in) {
+    bool temp_flag = false;
+    for (int i = 0; i < DCL_TRIC_PUMPNO; i++) {
+        if ( cluster_in->cmd_array[i].dev_flags & BUFFUL) {
+            temp_flag = true;
+        }
+    }
+    if (temp_flag) {
+        cluster_in->fsm->opt_field |= ACTRDY;
+    } else {
+        cluster_in->fsm->opt_field &= ~ACTRDY;
     }
 }
 
