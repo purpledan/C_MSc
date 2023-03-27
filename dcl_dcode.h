@@ -58,7 +58,7 @@ typedef struct dcode_file {
 }dcode_file;
 
 typedef struct dcode_triC_config {
-    char pump_name[DCL_DCODE_NAME_LEN];                             // User given name for pump
+    char pump_setups[DCL_TRIC_PUMPNO][DCL_DCODE_NAME_LEN];          // Addresses and user given names for pumps
     char valve_names[DCL_TRIC_VALVENO][DCL_DCODE_NAME_LEN];         // User given names for valves
     int valve_speeds[DCL_TRIC_VALVENO];                             // Speed setting for valves
     long default_speed;                                             // Default speed setting see pg 69 of C3000 manual

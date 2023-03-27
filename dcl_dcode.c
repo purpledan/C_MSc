@@ -64,7 +64,7 @@ state_dcode state_dcodeFsm_scan(dcode_cluster *cluster_in) {
 }
 
 state_dcode state_dcodeFsm_blkStart(dcode_cluster *cluster_in) {
-    if ( strstr(cluster_in->file.line_buf, "_CONFIG") ) {
+    if ( strstr(cluster_in->file.line_buf, "_PUMP_") ) {
         cluster_in->block = block_config;
         return state_dcode_scan;
     } else if ( strstr(cluster_in->file.line_buf, "RUN") ) {
@@ -117,6 +117,10 @@ state_dcode state_dcodeFsm_config(dcode_cluster *cluster_in) {
     /* Check reserved args */
     if ( !strcmp(args_buf.argv[0], "SPEED") ) {
         cluster_in->config.default_speed = strtol(args_buf.argv[1], NULL, 10);
+    } else if ( !strcmp(args_buf.argv[0], "ADDRESS") ) {
+
+    } else if ( !strcmp(args_buf.argv[0], "NAME") ) {
+
     } else {
         int valve_index;
         if ( (valve_index = (int)strtol(args_buf.argv[0], NULL, 10)) ) { // CAST: Index has max value of 6 <<<<<<<<< INT_MAX

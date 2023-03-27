@@ -1,15 +1,37 @@
 # This is an example of a dcode program
 # Config block
 
-!_CONFIG
-SPEED = 17
+!_PUMP_0
+NAME = Carrier
+ADDRESS = 0
 1 = ETH
 2 = WATER
-3 = PURGEA
-4 = PURGEB
-5 = PURGEC
-6 = PURGED
-@_CONFIG
+5 = OUTPUT
+6 = WASTE
+@_PUMP_0
+
+!_PUMP_1
+ADDRESS = 1
+1 = ETH
+2 = WATER
+5 = OUTPUT
+6 = WASTE
+@_PUMP_1
+
+!_PUMP_2
+ADDRESS = 2
+1 = ETH
+2 = WATER
+5 = OUTPUT
+6 = WASTE
+@_PUMP_2
+
+!_PUMP_3
+ADDRESS = 3
+1 = ETH
+5 = OUTPUT
+6 = WASTE
+@_PUMP_3
 
 # Steps are written like this
 !STEP_1
