@@ -25,8 +25,8 @@ state_dcode state_dcodeFsm_init(dcode_cluster *cluster_in) {
     cluster_in->fsm->opt_field = '\0';
     cluster_in->block = block_outside;
     cluster_in->step_list = NULL;
-    cluster_in->config.pump_resolution = 3000;      //TODO: Make non magic number
-    cluster_in->config.syringe_volume = 5.0;        //TODO: Also make non magic number
+    //cluster_in->config.pump_resolution = 3000;      //TODO: Make non magic number
+    //cluster_in->config.syringe_volume = 5.0;        //TODO: Also make non magic number
     return state_dcode_scan;
 }
 
@@ -116,7 +116,7 @@ state_dcode state_dcodeFsm_config(dcode_cluster *cluster_in) {
 
     /* Check reserved args */
     if ( !strcmp(args_buf.argv[0], "SPEED") ) {
-        cluster_in->config.default_speed = strtol(args_buf.argv[1], NULL, 10);
+        //cluster_in->config.default_speed = strtol(args_buf.argv[1], NULL, 10);
     } else if ( !strcmp(args_buf.argv[0], "ADDRESS") ) {
 
     } else if ( !strcmp(args_buf.argv[0], "NAME") ) {

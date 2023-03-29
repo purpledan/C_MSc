@@ -14,8 +14,26 @@
 /*  Files: dcl_structs.h & dcl_structs.c
  *  Data structures for Dan's control library
  *  Implements:
+ *  Linked List
  *  Message queue
  */
+
+/* Doubly Linked List:
+ * Implements a generic double linked list structure.
+ *
+ */
+
+/** Generic Doubly Linked List */
+typedef struct dcl_dList_type {
+    struct dcl_dList_type *next;
+    struct dcl_dList_type *previous;
+    void *data;
+}dcl_dList_type;
+
+/* Method Functions */
+dcl_dList_type *dcl_dList_create(void *x);
+void dcl_dList_elementAdd(dcl_dList_type *dList, void *x);
+void *dcl_dList_elementRemove(dcl_dList_type *dList);
 
 /* Message queue:
  * Implements a generic message queue structure.

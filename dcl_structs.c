@@ -9,6 +9,59 @@
 #include <stdio.h>
 #include <string.h>
 
+dcl_dList_type *dcl_dList_create(void *x) {
+    dcl_dList_type *p;
+
+    p = malloc(sizeof (dcl_dList_type));
+    if (!p) {
+        perror("Malloc for dList creation failed");
+        abort();
+    }
+
+    p->next = NULL;
+    p->previous = NULL;
+    p->data = x;
+
+    return p;
+}
+
+void dcl_dList_elementAdd(dcl_dList_type *dList, void *x) {
+    dcl_dList_type *p = dList;
+
+    while (p->next) {
+        p = p->next;
+    }
+
+    p->next = malloc(sizeof (dcl_dList_type));
+    if (!p->next) {
+        perror("Malloc for dList addition failed");
+        abort();
+    }
+
+    p->next->next = NULL;
+    p->next->previous = p;
+}
+
+void *dcl_dList_elementRemove(dcl_dList_type *dList) {
+    dcl_dList_type *p = dList;
+
+    if (!p) {
+        return NULL;
+    }
+    void *x = dList->data;
+
+    if (p->next) {
+        p->next->previous = p->previous;
+    }
+
+    if (p->previous) {
+        p->previous->next = p->next;
+    }
+
+    free(p);
+    return x;
+}
+
 void dcl_queue_init(dcl_queue_type *MsgQueue) {
     MsgQueue->first     = NULL;
     MsgQueue->last      = NULL;
