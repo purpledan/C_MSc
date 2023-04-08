@@ -61,12 +61,6 @@ void *parserThread(void *arg) {
     while (next_state != state_dcode_exit) {
         next_state = fsm_dcode[next_state](thread_cluster);
     }
-    printf("Printing read values:\n");
-    for (int i = 0; i < 6; i++) {
-        printf("Valve: %d; Name: %s; Speed: %d\n", i + 1,
-               thread_cluster->config.valve_names[i],
-               thread_cluster->config.valve_speeds[i]);
-    }
 
     fclose(thread_cluster->file.file_pointer);
     return 0;

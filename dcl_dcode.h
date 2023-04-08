@@ -42,9 +42,11 @@ typedef enum state_dcode{
 }state_dcode;
 
 typedef enum dcode_unit {
-    unit_ul,
-    unit_ml,
-    unit_pts,
+    unit_ul,        // microliters
+    unit_ml,        // milliliters
+    unit_pts,       // Location integer units
+    unit_mlps,      // milliliters per second
+    unit_mlpm,      // milliliters per minute
     unit_nan,
 }dcode_unit;
 
@@ -62,6 +64,7 @@ typedef struct dcode_triC_config {
     char pump_name[DCL_DCODE_NAME_LEN];                             // User given name for pump
     char valve_names[DCL_TRIC_VALVENO][DCL_DCODE_NAME_LEN];         // User given names for valves
     int valve_speeds[DCL_TRIC_VALVENO];                             // Speed setting for valves
+    int default_speed;
     struct dcode_triC_config *next_pump;                            // Next Config block
 }dcode_triC_config;
 
@@ -75,10 +78,10 @@ typedef struct dcode_triC_steps {
 typedef struct dcode_cluster {
     dcl_fsm_cluster_type *fsm;
     dcode_file file;
-    dcode_triC_config config;                                       // Future use to pass config via files
     dcode_block block;                                              // Current parsing block
     dcode_triC_steps *step_list;                                    // Linked list containing steps
     dcode_triC_steps *current_step;
+    dcode_triC_config *config_list;                                       // Future use to pass config via files
     dcode_triC_config *current_config;
 }dcode_cluster;
 

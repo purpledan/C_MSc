@@ -25,6 +25,7 @@ state_dcode state_dcodeFsm_init(dcode_cluster *cluster_in) {
     cluster_in->fsm->opt_field = '\0';
     cluster_in->block = block_outside;
     cluster_in->step_list = NULL;
+    cluster_in->config_list = NULL;
     //cluster_in->config.pump_resolution = 3000;      //TODO: Make non magic number
     //cluster_in->config.syringe_volume = 5.0;        //TODO: Also make non magic number
     return state_dcode_scan;
@@ -65,6 +66,26 @@ state_dcode state_dcodeFsm_scan(dcode_cluster *cluster_in) {
 
 state_dcode state_dcodeFsm_blkStart(dcode_cluster *cluster_in) {
     if ( strstr(cluster_in->file.line_buf, "_PUMP_") ) {
+        if (!cluster_in->config_list) {
+            cluster_in->config_list = malloc( sizeof (dcode_triC_config) );
+            if (!cluster_in->config_list) {
+                perror("Failled to malloc config: ");
+                return state_dcode_abort;
+            }
+            cluster_in->config_list->next_pump = NULL;
+            cluster_in->current_config = cluster_in->config_list;
+        } else {
+            while (cluster_in->current_config->next_pump) {
+                cluster_in->current_config = cluster_in->current_config->next_pump;
+            }
+            cluster_in->current_config->next_pump = malloc( sizeof (dcode_triC_config) );
+            cluster_in->current_config = cluster_in->current_config->next_pump;
+            if (!cluster_in->current_config) {
+                perror("Failled to malloc config: ");
+                return state_dcode_abort;
+            }
+            cluster_in->current_config->next_pump = NULL;
+        }
         cluster_in->block = block_config;
         return state_dcode_scan;
     } else if ( strstr(cluster_in->file.line_buf, "RUN") ) {
@@ -116,7 +137,7 @@ state_dcode state_dcodeFsm_config(dcode_cluster *cluster_in) {
 
     /* Check reserved args */
     if ( !strcmp(args_buf.argv[0], "SPEED") ) {
-        //cluster_in->config.default_speed = strtol(args_buf.argv[1], NULL, 10);
+        cluster_in->current_config->default_speed = (int) strtol(args_buf.argv[1], NULL, 10);
     } else if ( !strcmp(args_buf.argv[0], "ADDRESS") ) {
 
     } else if ( !strcmp(args_buf.argv[0], "NAME") ) {
@@ -318,7 +339,11 @@ dcode_unit dcode_search_unit(char *unit_in) {
         return unit_ml;
     } else if ( !strcmp(unit_in, "UL") ) {
         return unit_ul;
-    }  else {
+    }  else if ( !strcmp(unit_in, "MLPS") ) {
+        return unit_mlps;
+    }  else if ( !strcmp(unit_in, "MLPM") ) {
+        return unit_mlpm;
+    } else {
         return unit_nan;
     }
 }
@@ -331,6 +356,10 @@ int dcode_unit_convert(dcode_cluster *cluster_in, double amount, dcode_unit unit
             return (int)lround( (amount/1000 * 600.0) );
         case unit_pts:
             return (int) lround(amount);
+        case unit_mlps:
+            return (int) lround( (amount / 600.0) );
+        case unit_mlpm:
+            return 0;
         case unit_nan:  // TODO: Add method to check inputs of units
         default:
             return 0;
