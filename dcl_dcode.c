@@ -72,7 +72,6 @@ state_dcode state_dcodeFsm_blkStart(dcode_cluster *cluster_in) {
                 perror("Failled to malloc config: ");
                 return state_dcode_abort;
             }
-            cluster_in->config_list->next_pump = NULL;
             cluster_in->current_config = cluster_in->config_list;
         } else {
             while (cluster_in->current_config->next_pump) {
@@ -84,8 +83,8 @@ state_dcode state_dcodeFsm_blkStart(dcode_cluster *cluster_in) {
                 perror("Failled to malloc config: ");
                 return state_dcode_abort;
             }
-            cluster_in->current_config->next_pump = NULL;
         }
+        cluster_in->current_config->next_pump = NULL;
         cluster_in->block = block_config;
         return state_dcode_scan;
     } else if ( strstr(cluster_in->file.line_buf, "RUN") ) {
@@ -137,17 +136,19 @@ state_dcode state_dcodeFsm_config(dcode_cluster *cluster_in) {
 
     /* Check reserved args */
     if ( !strcmp(args_buf.argv[0], "SPEED") ) {
+        // TODO: Add unit conversion
         cluster_in->current_config->default_speed = (int) strtol(args_buf.argv[1], NULL, 10);
     } else if ( !strcmp(args_buf.argv[0], "ADDRESS") ) {
-
+        cluster_in->current_config->pump_address = (int) strtol(args_buf.argv[1], NULL, 10);
     } else if ( !strcmp(args_buf.argv[0], "NAME") ) {
-
+        strcpy(cluster_in->current_config->pump_name, args_buf.argv[1]);
     } else {
         int valve_index;
         if ( (valve_index = (int)strtol(args_buf.argv[0], NULL, 10)) ) { // CAST: Index has max value of 6 <<<<<<<<< INT_MAX
-            strcpy(cluster_in->config.valve_names[valve_index - 1], args_buf.argv[1]);
+            strcpy(cluster_in->current_config->valve_names[valve_index - 1], args_buf.argv[1]); // -1 since people count valves starting from 1
             if ( args_buf.argc == 3 ) {
-                cluster_in->config.valve_speeds[valve_index - 1] = (int)strtol(args_buf.argv[2], NULL, 10);
+                // TODO: Add unit conversion
+                cluster_in->current_config->valve_speeds[valve_index - 1] = (int)strtol(args_buf.argv[2], NULL, 10);
             }
         }
     }
@@ -203,7 +204,7 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
             amount = dcode_unit_convert(cluster_in, read_amount, unit_pts);
         }
     } else {
-        amount = 3000;
+        amount = 3000;  // Assuming the full 5ml syringe
     }
     if (valve_in) {
         sprintf(cluster_in->current_step->block[cluster_in->current_step->index],
@@ -326,7 +327,7 @@ void dcode_config_lexer(dcode_args *args_in) {
 
 int dcode_search_valve(dcode_cluster *cluster_in, char *name) {
     for (int i = 0; i < DCL_TRIC_VALVENO; i++) {
-        if ( !strcmp(name, cluster_in->config.valve_names[i]) ) {
+        if ( !strcmp(name, cluster_in->config_list->valve_names[i]) ) {
             return i + 1;
         }
     }
