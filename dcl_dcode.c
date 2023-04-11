@@ -163,32 +163,42 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
     dcode_step_lexer(&args_buf);
     // TODO: Abstract creation of STRMSGs
     if (args_buf.argc < 2) {
-        fprintf(stderr,
-                "Line: %d, not enough arguments, did you forget '->'?",
-                (int)cluster_in->file.line_no);
-        return state_dcode_abort;
+        if ( !strcmp(args_buf.argv[0], "SYNC") ) {
+            sprintf(cluster_in->current_step->block[cluster_in->current_step->index],
+                    "1,SYN,1,1");
+            cluster_in->current_step->index++;
+            return state_dcode_scan;
+        } else {
+            fprintf(stderr,
+                    "Line: %d, not enough arguments, did you forget '->'?",
+                    (int)cluster_in->file.line_no);
+            return state_dcode_abort;
+        }
     }
-    int valve_in, valve_out, amount;
+    dcode_valve valve_in, valve_out;
+    int amount;
     double read_amount;
     if (*args_buf.argv[0]) {
         valve_in = dcode_search_valve(cluster_in, args_buf.argv[0]);
-        if (!valve_in) {
+        if (!valve_in.valid) {
             fprintf(stderr,"Line %d, Input valve not found\n", (int)cluster_in->file.line_no);
             return state_dcode_abort;
         }
     } else {
-        valve_in = 0;
+        valve_in.pump_no = 0;
+        valve_in.valve_no = 0;
     }
     if (*args_buf.argv[1]) {
         valve_out = dcode_search_valve(cluster_in, args_buf.argv[1]);
-        if (!valve_out) {
+        if (!valve_out.valid) {
             fprintf(stderr,"Line %d, Output valve not found\n", (int)cluster_in->file.line_no);
             return state_dcode_abort;
         }
     } else {
-        valve_out = 0;
+        valve_out.pump_no = 0;
+        valve_out.valve_no = 0;
     }
-    if ( !(valve_in) && !(valve_out) ) {
+    if ( !(valve_in.valid) && !(valve_out.valid) ) {
         fprintf(stderr,
                 "Line: %d, no valve names found, aborting!\n",
                 (int)cluster_in->file.line_no);
@@ -206,17 +216,19 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
     } else {
         amount = 3000;  // Assuming the full 5ml syringe
     }
-    if (valve_in) {
+    if (valve_in.valid) {
         sprintf(cluster_in->current_step->block[cluster_in->current_step->index],
-                "1,PUL,%d,%d",
-                valve_in,
+                "%d,PUL,%d,%d",
+                valve_in.pump_no,
+                valve_in.valve_no,
                 amount);
         cluster_in->current_step->index++;
     }
-    if (valve_out) {
+    if (valve_out.valid) {
         sprintf(cluster_in->current_step->block[cluster_in->current_step->index],
-                "1,PSH,%d,%d",
-                valve_out,
+                "%d,PSH,%d,%d",
+                valve_out.pump_no,
+                valve_out.valve_no,
                 amount);
         cluster_in->current_step->index++;
     }
@@ -325,13 +337,26 @@ void dcode_config_lexer(dcode_args *args_in) {
     args_in->argc = index;
 }
 
-int dcode_search_valve(dcode_cluster *cluster_in, char *name) {
-    for (int i = 0; i < DCL_TRIC_VALVENO; i++) {
-        if ( !strcmp(name, cluster_in->config_list->valve_names[i]) ) {
-            return i + 1;
+dcode_valve dcode_search_valve(dcode_cluster *cluster_in, char *name) {
+    dcode_valve ret_valve;
+    ret_valve.valid = false;
+    dcode_triC_config *selector = cluster_in->config_list;
+    while (selector) {
+        for (int i = 0; i < DCL_TRIC_VALVENO; i++) {
+            if ( !strcmp(name, selector->valve_names[i]) ) {
+                ret_valve.pump_no = selector->pump_address;
+                ret_valve.valve_no = i + 1;
+                ret_valve.valid = true;
+                selector = NULL;
+                break;
+            }
+        }
+        if (selector) {
+            selector = selector->next_pump;
         }
     }
-    return 0;
+
+    return ret_valve;
 }
 
 dcode_unit dcode_search_unit(char *unit_in) {

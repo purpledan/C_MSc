@@ -112,4 +112,5 @@ void action_triC_psh(triC_fsm_cluster *cluster_in);
 void action_triC_pul(triC_fsm_cluster *cluster_in);
 void action_triC_set(triC_fsm_cluster *cluster_in);
 void action_triC_cfg(triC_fsm_cluster *cluster_in);
+void action_triC_syn(triC_fsm_cluster *cluster_in);
 #endif //C_MSC_DCL_FSM_TRIKONT_H

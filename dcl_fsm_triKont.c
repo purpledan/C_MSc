@@ -192,6 +192,9 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
         case action_set:
             action_triC_set(cluster_in);
             break;
+        case action_syn:
+            action_triC_syn(cluster_in);
+            break;
         case action_err:
         default:
             printf("CMD made no sense\n");
@@ -398,4 +401,9 @@ void action_triC_cfg(triC_fsm_cluster *cluster_in) {
         default:
             break;
     }
+}
+
+void action_triC_syn(triC_fsm_cluster *cluster_in) {
+    /* No action, only syncing*/
+    cluster_in->fsm->opt_field |= SYNCRO;
 }

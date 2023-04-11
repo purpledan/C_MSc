@@ -85,6 +85,12 @@ typedef struct dcode_cluster {
     dcode_triC_config *current_config;
 }dcode_cluster;
 
+typedef struct dcode_valve {
+    int pump_no;
+    int valve_no;
+    bool valid;
+}dcode_valve;
+
 typedef struct dcode_args {
     char *line_in;
     int argc;
@@ -106,7 +112,7 @@ void dcode_rem_comments(char *line_in);
 void dcode_step_lexer(dcode_args *args_in);
 int dcode_step_parser(dcode_args *args_in);
 void dcode_config_lexer(dcode_args *args_in);
-int dcode_search_valve(dcode_cluster *cluster_in, char *name);
+dcode_valve dcode_search_valve(dcode_cluster *cluster_in, char *name);
 dcode_unit dcode_search_unit(char *unit_in);
 int dcode_unit_convert(dcode_cluster *cluster_in, double amount, dcode_unit unit);
 #endif //C_MSC_DCL_DCODE_H
