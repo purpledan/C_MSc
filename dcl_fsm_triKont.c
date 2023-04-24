@@ -134,6 +134,7 @@ state_triC state_triC_supervise(triC_fsm_cluster *cluster_in) {
     printf("Supervise: ");
     if ( cluster_in->fsm->opt_field & BUFCOL ) {
         /* A buffer collision occurred and is being resolved */
+        /* TODO: Fix buffer collision code */
         cluster_in->device_in->dev_select = cluster_in->nxt_blockingAct;
         cluster_in->cmd_array[cluster_in->nxt_blockingAct].dev_flags &= ~BUFCOL;
         cluster_in->fsm->opt_field &= ~BUFCOL;
@@ -150,8 +151,6 @@ state_triC state_triC_supervise(triC_fsm_cluster *cluster_in) {
             cluster_in->cmd_array[addr].arg1 = cluster_in->cmd_buf.arg1;
             cluster_in->cmd_array[addr].arg2 = cluster_in->cmd_buf.arg2;
             cluster_in->cmd_array[addr].dev_flags |= BUFFUL;
-            cluster_in->fsm->opt_field |= ACTRDY;
-            cluster_in->device_in->dev_select = addr;
         } else {
             /* Buffer collision! */
             printf("Buffer Collision: ");
@@ -162,19 +161,47 @@ state_triC state_triC_supervise(triC_fsm_cluster *cluster_in) {
             return state_idle;
         }
     }
+    return state_delegate;
+}
+
+state_triC state_triC_delegate(triC_fsm_cluster *cluster_in) {
     /* If the pump is busy, we can't perform the action */
     /* Pump(s) in transient, get status of all SPs */
     dcl_triC_multiGetStatus(cluster_in->device_in);
     /* Also updates the global flag if any single SP is busy */
     aux_triC_updateBusyStatus(cluster_in);
+    /* Flag ACTRDY if a buffer is full and ready for action */
+    aux_triC_updateActionStatus(cluster_in);
 
-    if (cluster_in->cmd_array[cluster_in->device_in->dev_select].dev_flags & BUFFUL) {
-        if ( !(cluster_in->cmd_array[cluster_in->device_in->dev_select].dev_flags & SPBUSY) ) {
-
-            return state_action;
+    bool perform_task = false;
+    /* If we are in SYNCRO mode, we halt all SP actions until last action is complete */
+    if ( cluster_in->fsm->opt_field & SYNCRO ) {
+        /* Turn off SYNCRO mode if no pumps are busy */
+        if (!(cluster_in->fsm->opt_field & SPBUSY)) {
+            cluster_in->fsm->opt_field &= ~SYNCRO;
+        }
+    } else if (cluster_in->fsm->opt_field & ACTRDY) {
+        for (int i = 0; i < DCL_TRIC_PUMPNO; i++) {
+            /* Exclude collided pump in check */
+            if (cluster_in->cmd_array[i].dev_flags & BUFCOL) {
+                continue;
+            }
+            if (cluster_in->cmd_array[i].dev_flags & BUFFUL) {
+                if ( !(cluster_in->cmd_array[i].dev_flags & SPBUSY) ) {
+                    perform_task = true;
+                    cluster_in->device_in->dev_select = i; // TODO: Possible error with device address
+                    break;
+                }
+            }
         }
     }
-    return state_transient;
+    if (perform_task) {
+        cluster_in->fsm->opt_field &= ~RETARD;
+        return state_action;
+    } else {
+        cluster_in->fsm->opt_field |= RETARD;
+        return state_transient;
+    }
 }
 
 state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
@@ -207,34 +234,6 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
 }
 
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in) {
-    /* Pump(s) in transient, get status of all SPs */
-    /* Also updates the global flag if any single SP is busy */
-    aux_triC_updateBusyStatus(cluster_in);
-    /* Updates ACTRDY status */
-    aux_triC_updateActionStatus(cluster_in);
-
-    /* If we are in SYNCRO mode, we halt all SP actions until last action is complete */
-    if ( cluster_in->fsm->opt_field & SYNCRO ) {
-        /* Turn off SYNCRO mode if no pumps are busy */
-        if ( !(cluster_in->fsm->opt_field & SPBUSY) ) {
-            cluster_in->fsm->opt_field &= ~SYNCRO;
-        }
-    } else {
-        /* Is there any SPs with a full buffer and not busy? Excluding the pump in BUFCOL */
-        for (int i = 0; i < DCL_TRIC_PUMPNO; i++) {
-            if (cluster_in->cmd_array[i].dev_flags & BUFCOL) {
-                continue;
-            } else if (cluster_in->cmd_array[i].dev_flags & BUFFUL) {
-                if ( !(cluster_in->cmd_array[i].dev_flags & SPBUSY) ) {
-                    cluster_in->device_in->dev_select = cluster_in->cmd_array[i].addr_arg;
-                    printf("Transient bang: ");
-                    return state_action;
-                }
-            }
-        }
-    }
-
-
     /* We may use this downtime to update the external status */
     ext_triC_updateStatus(cluster_in);
 

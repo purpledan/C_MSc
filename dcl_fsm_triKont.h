@@ -27,7 +27,7 @@
 
 /* Bitfield defines for triC_fsm status */
 #define MSGRDY  0b00000001      // A MSG is ready for action
-#define QUEEMP  0b01000000      // MSG queue is empty
+#define RETARD  0b00000010      // Slow down loop rate
 #define SPBUSY  0b00000100      // Pump busy
 #define BUFFUL  0b00001000      // Pump Buffer full
 #define BUFCOL  0b00010000      // Buffer collision occurred
@@ -51,6 +51,7 @@ typedef enum setting_triC {
 typedef enum state_triC {
     state_init,
     state_supervise,
+    state_delegate,
     state_action,
     state_transient,
     state_idle,
@@ -77,10 +78,7 @@ typedef struct triC_fsm_cluster {
     dcl_triC_status *external;          // Link to external status
     triC_fsm_buf *cmd_array;            // Device specific CMD buffer
     triC_fsm_buf cmd_buf;               // MSG in buffer
-    action_triC nxt_cmd;
     int nxt_blockingAct;                // Device to block and self action
-    int nxt_act;                        // Device to self action
-    int addr_arg;
     int arg1;
     int arg2;
     bool init_complete;                 // Init completed
@@ -97,6 +95,7 @@ state_triC state_triC_init(triC_fsm_cluster *cluster_in);
 state_triC state_triC_idle(triC_fsm_cluster *cluster_in);
 state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in);
 state_triC state_triC_supervise(triC_fsm_cluster *cluster_in);
+state_triC state_triC_delegate(triC_fsm_cluster *cluster_in);
 state_triC state_triC_action(triC_fsm_cluster *cluster_in);
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in);
 state_triC state_triC_halt(triC_fsm_cluster *cluster_in);
