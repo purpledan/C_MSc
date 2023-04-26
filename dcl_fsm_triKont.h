@@ -22,6 +22,7 @@
 #define C_MSC_DCL_FSM_TRIKONT_H
 
 #include <stdbool.h>
+#include <ctype.h>
 #include "dcl_triKont.h"
 #include "dcl_fsm.h"
 
@@ -52,6 +53,7 @@ typedef enum state_triC {
     state_init,
     state_supervise,
     state_delegate,
+    state_resolve,
     state_action,
     state_transient,
     state_idle,
@@ -78,7 +80,6 @@ typedef struct triC_fsm_cluster {
     dcl_triC_status *external;          // Link to external status
     triC_fsm_buf *cmd_array;            // Device specific CMD buffer
     triC_fsm_buf cmd_buf;               // MSG in buffer
-    int nxt_blockingAct;                // Device to block and self action
     int arg1;
     int arg2;
     bool init_complete;                 // Init completed
@@ -96,13 +97,14 @@ state_triC state_triC_idle(triC_fsm_cluster *cluster_in);
 state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in);
 state_triC state_triC_supervise(triC_fsm_cluster *cluster_in);
 state_triC state_triC_delegate(triC_fsm_cluster *cluster_in);
+state_triC state_triC_resolve(triC_fsm_cluster *cluster_in);
 state_triC state_triC_action(triC_fsm_cluster *cluster_in);
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in);
 state_triC state_triC_halt(triC_fsm_cluster *cluster_in);
 state_triC state_triC_critical(triC_fsm_cluster *cluster_in);
 state_triC state_triC_terminate(triC_fsm_cluster *cluster_in);
 int ext_triC_updateStatus(triC_fsm_cluster *cluster_in);
-void aux_triC_parseMsg(triC_fsm_cluster *cluster_in);
+int aux_triC_parseMsg(triC_fsm_cluster *cluster_in);
 /* Updates all SPBUSY flags */
 void aux_triC_updateBusyStatus(triC_fsm_cluster *cluster_in);
 /* Updates the ACTRDY flag */

@@ -165,7 +165,7 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
     if (args_buf.argc < 2) {
         if ( !strcmp(args_buf.argv[0], "SYNC") ) {
             sprintf(cluster_in->current_step->block[cluster_in->current_step->index],
-                    "1,SYN,1,1");
+                    "!,SYN");
             cluster_in->current_step->index++;
             return state_dcode_scan;
         } else {

@@ -58,12 +58,12 @@ state_triC state_triC_init(triC_fsm_cluster *cluster_in) {
         }
 
     }
-    cluster_in->device_in->dev_select = 1;
-    dcl_triC_setSpeed(cluster_in->device_in, 15);
-    cluster_in->device_in->dev_select = 2;
-    dcl_triC_setSpeed(cluster_in->device_in, 14);
-    cluster_in->device_in->dev_select = 0;
     sleep(7);       // TODO: Add way so that state_transient is used instead
+    cluster_in->device_in->dev_select = 0;
+    dcl_triC_setSpeed(cluster_in->device_in, 20);
+    cluster_in->device_in->dev_select = 1;
+    dcl_triC_setSpeed(cluster_in->device_in, 20);
+    cluster_in->device_in->dev_select = 0;
 
 
     ret_flag = ext_triC_updateStatus(cluster_in);
@@ -74,39 +74,24 @@ state_triC state_triC_init(triC_fsm_cluster *cluster_in) {
 }
 
 state_triC state_triC_idle(triC_fsm_cluster *cluster_in) {
-    /* Has a buffer collision occurred? */
-    if ( cluster_in->fsm->opt_field & BUFCOL ) {
-        /* Is this pump busy */
-        {
-            if ( cluster_in->cmd_array[cluster_in->cmd_buf.addr_arg].dev_flags & SPBUSY ) {
-                /* Wait until the device is done
-                 * This will block all incoming msgs until collision has resolved */
-                return state_transient;
-            } else {
-                /* Continue with action to resolve collision */
-                return state_supervise;
-            }
-        }
+    /* Is there a message ready for us? */
+    if ( cluster_in->fsm->opt_field & MSGRDY ) {
+        /* Read Msg and perform action */
+        return state_supervise;
     } else {
-        /* Is there a message ready for us? */
-        if ( cluster_in->fsm->opt_field & MSGRDY ) {
-            /* Read Msg and perform action */
-            return state_supervise;
-        } else {
-            /* There is no MSG in the buffer ready */
-            if (cluster_in->fsm->queue_empty) {
-                /* but there is an action ready */
-                if (cluster_in->fsm->opt_field & ACTRDY) {
-                    /* Stay in transient*/
-                    return state_transient;
-                } else {
-                    /* Queue is empty, we goto wait*/
-                    return state_halt;
-                }
+        /* There is no MSG in the buffer ready */
+        if (cluster_in->fsm->queue_empty) {
+            /* but there is an action ready */
+            if (cluster_in->fsm->opt_field & ACTRDY) {
+                /* Delegate action */
+                return state_delegate;
             } else {
-                /* We get a new msg from the queue */
-                return state_getMsg;
+                /* Queue is empty, we goto wait*/
+                return state_halt;
             }
+        } else {
+            /* We get a new msg from the queue */
+            return state_getMsg;
         }
     }
 }
@@ -131,19 +116,19 @@ state_triC state_triC_getMsg(triC_fsm_cluster *cluster_in) {
 }
 
 state_triC state_triC_supervise(triC_fsm_cluster *cluster_in) {
-    printf("Supervise: ");
-    if ( cluster_in->fsm->opt_field & BUFCOL ) {
-        /* A buffer collision occurred and is being resolved */
-        /* TODO: Fix buffer collision code */
-        cluster_in->device_in->dev_select = cluster_in->nxt_blockingAct;
-        cluster_in->cmd_array[cluster_in->nxt_blockingAct].dev_flags &= ~BUFCOL;
-        cluster_in->fsm->opt_field &= ~BUFCOL;
+    if ( cluster_in->fsm->opt_field & (BUFCOL | SYNCRO) ) {
+        /* Either buffer collision or synchronisation mode */
+        /* Skip all other handling tasks */
     } else {
         /* There was no collision previously, so we go on as normal */
         /* Parse and store MSG in staging buffer */
-        aux_triC_parseMsg(cluster_in);
+        int special = aux_triC_parseMsg(cluster_in);
         /* Signal that MSG has been read from queue */
         cluster_in->fsm->opt_field &= ~MSGRDY;
+        if (special) {
+            cluster_in->fsm->opt_field |= SYNCRO;
+            return state_delegate;
+        }
         /* Attempt to store MSG in dev buffer */
         int addr = cluster_in->cmd_buf.addr_arg;
         if ( !(cluster_in->cmd_array[addr].dev_flags & BUFFUL) ) {
@@ -153,9 +138,7 @@ state_triC state_triC_supervise(triC_fsm_cluster *cluster_in) {
             cluster_in->cmd_array[addr].dev_flags |= BUFFUL;
         } else {
             /* Buffer collision! */
-            printf("Buffer Collision: ");
             cluster_in->fsm->opt_field |= MSGRDY;           // We don't want to write over the current message yet
-            cluster_in->nxt_blockingAct = addr;             // Remember the device that is blocking
             cluster_in->cmd_array[addr].dev_flags |= BUFCOL;// Flag the specific dev
             cluster_in->fsm->opt_field |= BUFCOL;           // Flag the overall status too
             return state_idle;
@@ -175,27 +158,68 @@ state_triC state_triC_delegate(triC_fsm_cluster *cluster_in) {
 
     bool perform_task = false;
     /* If we are in SYNCRO mode, we halt all SP actions until last action is complete */
-    if ( cluster_in->fsm->opt_field & SYNCRO ) {
-        /* Turn off SYNCRO mode if no pumps are busy */
-        if (!(cluster_in->fsm->opt_field & SPBUSY)) {
-            cluster_in->fsm->opt_field &= ~SYNCRO;
-        }
-    } else if (cluster_in->fsm->opt_field & ACTRDY) {
-        for (int i = 0; i < DCL_TRIC_PUMPNO; i++) {
-            /* Exclude collided pump in check */
-            if (cluster_in->cmd_array[i].dev_flags & BUFCOL) {
-                continue;
+    /* However we can only attempt SYNCRO when there are no buffer collisions */
+   if (cluster_in->fsm->opt_field & ACTRDY) {
+       for (int i = 0; i < DCL_TRIC_PUMPNO; i++) {
+           /* Exclude collided pump in check */
+           if (cluster_in->cmd_array[i].dev_flags & BUFCOL) {
+               if ( !(cluster_in->cmd_array[i].dev_flags & SPBUSY) ) {
+                   perform_task = true;
+                   cluster_in->device_in->dev_select = i;
+                   /* Reset device status */
+                   cluster_in->cmd_array[i].dev_flags &= ~BUFCOL;
+                   cluster_in->fsm->opt_field &= ~BUFCOL;
+               } else {
+                   continue;
+               }
+           }
+           if (cluster_in->cmd_array[i].dev_flags & BUFFUL) {
+               if ( !(cluster_in->cmd_array[i].dev_flags & SPBUSY) ) {
+                   perform_task = true;
+                   cluster_in->device_in->dev_select = i; // TODO: Possible error with device address
+                   break;
+               }
+           }
+       }
+   } else if ( !(cluster_in->fsm->opt_field & SPBUSY) ) {
+       cluster_in->fsm->opt_field &= ~SYNCRO;
+   }
+
+   if (perform_task) {
+       cluster_in->fsm->opt_field &= ~RETARD;
+       return state_action;
+   } else {
+       cluster_in->fsm->opt_field |= RETARD;
+       return state_transient;
+   }
+}
+
+state_triC state_triC_resolve(triC_fsm_cluster *cluster_in) {
+    /* Attempt to resolve buffer collision */
+    dcl_triC_multiGetStatus(cluster_in->device_in);
+    aux_triC_updateBusyStatus(cluster_in);
+    aux_triC_updateActionStatus(cluster_in);
+
+    bool perform_task = false;
+    for (int i = 0; i < DCL_TRIC_PUMPNO; i++) {
+        /* Look for blocking pump */
+        if (cluster_in->cmd_array[i].dev_flags & BUFCOL) {
+            /* Is it busy? */
+            if ( !(cluster_in->cmd_array[i].dev_flags & SPBUSY) ) {
+                perform_task = true;
+                cluster_in->device_in->dev_select = i;
+                /* Reset device status */
+                cluster_in->cmd_array[i].dev_flags &= ~BUFCOL;
+            } else {
+                /* The pump is still blocking, ask delegator if another pump is ready */
+                return state_delegate;
             }
-            if (cluster_in->cmd_array[i].dev_flags & BUFFUL) {
-                if ( !(cluster_in->cmd_array[i].dev_flags & SPBUSY) ) {
-                    perform_task = true;
-                    cluster_in->device_in->dev_select = i; // TODO: Possible error with device address
-                    break;
-                }
-            }
+            break;
         }
     }
     if (perform_task) {
+        /* Reset buffer collision status since the next action will resolve the problem */
+        cluster_in->fsm->opt_field &= ~BUFCOL;
         cluster_in->fsm->opt_field &= ~RETARD;
         return state_action;
     } else {
@@ -237,12 +261,13 @@ state_triC state_triC_transient(triC_fsm_cluster *cluster_in) {
     /* We may use this downtime to update the external status */
     ext_triC_updateStatus(cluster_in);
 
-    /* Slow down mechanism so that we don't consume a billion CPU cycles */
-    struct timespec halt = {
-            .tv_nsec = 128000000,   // 128ms?
-    };
-    nanosleep(&halt, NULL);
-
+    if (cluster_in->fsm->opt_field & RETARD) {
+        /* Slow down mechanism so that we don't consume a billion CPU cycles */
+        struct timespec halt = {
+                .tv_nsec = 128000000,   // 128ms?
+        };
+        nanosleep(&halt, NULL);
+    }
     return state_idle;
 }
 
@@ -304,8 +329,15 @@ int ext_triC_updateStatus(triC_fsm_cluster *cluster_in) {
     return ret_flag;
 }
 
-void aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
+int aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
     char temp_string[8] = "";
+
+    if ( !isdigit(cluster_in->fsm->msg_buf.argstr[0]) ) {
+        sscanf(cluster_in->fsm->msg_buf.argstr, "!,%[A-Z]",
+        temp_string);
+        cluster_in->cmd_buf.nxt_cmd = action_syn;
+        return 1;
+    }
 
     sscanf(cluster_in->fsm->msg_buf.argstr, "%d,%[A-Z],%d,%d",
            &cluster_in->cmd_buf.addr_arg,
@@ -326,6 +358,8 @@ void aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
     } else {
         cluster_in->cmd_buf.nxt_cmd = action_err;
     }
+
+    return 0;
 }
 
 void aux_triC_updateBusyStatus(triC_fsm_cluster *cluster_in) {
@@ -362,7 +396,8 @@ void aux_triC_updateActionStatus(triC_fsm_cluster *cluster_in) {
 
 void action_triC_psh(triC_fsm_cluster *cluster_in) {
     int addr = (int)cluster_in->device_in->dev_select;
-    printf("Dispensing %d from valve %d\n",
+    printf("Pump %d Dispensing %d from valve %d\n",
+                            addr,
                             cluster_in->cmd_array[addr].arg2,
                             cluster_in->cmd_array[addr].arg1);
     dcl_triC_dispenseAtomic(cluster_in->device_in,
@@ -372,7 +407,8 @@ void action_triC_psh(triC_fsm_cluster *cluster_in) {
 }
 void action_triC_pul(triC_fsm_cluster *cluster_in) {
     int addr = (int)cluster_in->device_in->dev_select;
-    printf("Aspirating %d from valve %d\n",
+    printf("Pump %d Aspirating %d from valve %d\n",
+                             addr,
                              cluster_in->cmd_array[addr].arg2,
                             cluster_in->cmd_array[addr].arg1);
     dcl_triC_aspirateAtomic(cluster_in->device_in,
@@ -404,5 +440,6 @@ void action_triC_cfg(triC_fsm_cluster *cluster_in) {
 
 void action_triC_syn(triC_fsm_cluster *cluster_in) {
     /* No action, only syncing*/
+    printf("Synchronisation\n");
     cluster_in->fsm->opt_field |= SYNCRO;
 }
