@@ -76,14 +76,12 @@ typedef struct triC_fsm_buf {
 typedef struct triC_fsm_cluster {
     dcl_fsm_cluster_type *fsm;          // Generic FSM cluster
     dcl_serialDevice_triC *device_in;   // TriC Device in
-    pthread_mutex_t *ext_mutex;         // Link to external status mutex
-    dcl_triC_status *external;          // Link to external status
+    pthread_mutex_t *ext_mutex;         // Link to ext_array status mutex
+    dcl_triC_status *ext_array;          // Link to ext_array status
     triC_fsm_buf *cmd_array;            // Device specific CMD buffer
     triC_fsm_buf cmd_buf;               // MSG in buffer
-    int arg1;
-    int arg2;
     bool init_complete;                 // Init completed
-    bool enable_external;               // Enable link to external status
+    bool enable_external;               // Enable link to ext_array status
     bool enable_log;                    // Enable writing log file
 }triC_fsm_cluster;
 

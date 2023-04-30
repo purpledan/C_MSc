@@ -31,8 +31,8 @@ triC_fsm_cluster *state_triC_fsmSetup(dcl_queue_type *fsm_msg_queue,
     fsm_cluster.opt_field = '\0';
 
     if (ext_status) {
-        thread_cluster.enable_external = true; // Link to external status available
-        thread_cluster.external = ext_status;
+        thread_cluster.enable_external = true; // Link to ext_array status available
+        thread_cluster.ext_array = ext_status;
         thread_cluster.ext_mutex = ext_mutex;
     } else {
         thread_cluster.enable_external = false;
@@ -258,7 +258,7 @@ state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
 }
 
 state_triC state_triC_transient(triC_fsm_cluster *cluster_in) {
-    /* We may use this downtime to update the external status */
+    /* We may use this downtime to update the ext_array status */
     ext_triC_updateStatus(cluster_in);
 
     if (cluster_in->fsm->opt_field & RETARD) {
@@ -305,21 +305,26 @@ int ext_triC_updateStatus(triC_fsm_cluster *cluster_in) {
     int ret_flag;
     if ( cluster_in->enable_external ) {
         if ( !(cluster_in->init_complete) ) {
+            /* Check the overall status of all the pumps */
+            /* Grab the mutex lock for the entire loop */
             ret_flag = pthread_mutex_lock(cluster_in->ext_mutex);
-            cluster_in->external->initialised = cluster_in->device_in->dev_status_array[0].initialised;
-            cluster_in->external->statusByte = cluster_in->device_in->dev_status_array[0].statusByte;
-            cluster_in->external->topV = cluster_in->device_in->dev_status_array[0].topV;
-            cluster_in->external->plunger = cluster_in->device_in->dev_status_array[0].plunger;
-            cluster_in->external->valve = cluster_in->device_in->dev_status_array[0].valve;
+            for (int i = 0; i < DCL_TRIC_PUMPNO; i++) {
+                cluster_in->ext_array[i].initialised = cluster_in->device_in->dev_status_array[i].initialised;
+                cluster_in->ext_array[i].statusByte = cluster_in->device_in->dev_status_array[i].statusByte;
+                cluster_in->ext_array[i].topV = cluster_in->device_in->dev_status_array[i].topV;
+                cluster_in->ext_array[i].plunger = cluster_in->device_in->dev_status_array[i].plunger;
+                cluster_in->ext_array[i].valve = cluster_in->device_in->dev_status_array[i].valve;
+            }
             pthread_mutex_unlock(cluster_in->ext_mutex);
         } else {
             ret_flag = pthread_mutex_trylock(cluster_in->ext_mutex);
-            cluster_in->external->initialised = cluster_in->device_in->dev_status_array[0].initialised;
-            cluster_in->external->statusByte = cluster_in->device_in->dev_status_array[0].statusByte;
-            cluster_in->external->topV = cluster_in->device_in->dev_status_array[0].topV;
-            cluster_in->external->plunger = cluster_in->device_in->dev_status_array[0].plunger;
-            cluster_in->external->valve = cluster_in->device_in->dev_status_array[0].valve;
-            if (!ret_flag) {
+            if (ret_flag) {
+                for (int i = 0; i < DCL_TRIC_PUMPNO; i++) {
+                    cluster_in->ext_array[i].statusByte = cluster_in->device_in->dev_status_array[i].statusByte;
+                    cluster_in->ext_array[i].topV = cluster_in->device_in->dev_status_array[i].topV;
+                    cluster_in->ext_array[i].plunger = cluster_in->device_in->dev_status_array[i].plunger;
+                    cluster_in->ext_array[i].valve = cluster_in->device_in->dev_status_array[i].valve;
+                }
                 pthread_mutex_unlock(cluster_in->ext_mutex);
             }
         }
@@ -419,7 +424,8 @@ void action_triC_pul(triC_fsm_cluster *cluster_in) {
 
 void action_triC_set(triC_fsm_cluster *cluster_in) {
     int addr = (int)cluster_in->device_in->dev_select;
-    printf("Setting Valve to %d and plunger to %d\n",
+    printf("Pump %d Setting Valve to %d and plunger to %d\n",
+           addr,
            cluster_in->cmd_array[addr].arg1,
            cluster_in->cmd_array[addr].arg2);
     dcl_triC_setAtomic(cluster_in->device_in, cluster_in->cmd_array[addr].arg1,
@@ -429,9 +435,10 @@ void action_triC_set(triC_fsm_cluster *cluster_in) {
 
 void action_triC_cfg(triC_fsm_cluster *cluster_in) {
     /* No action, only changing a setting */
-    switch (cluster_in->arg1) {
+    int addr = (int)cluster_in->device_in->dev_select;
+    switch (cluster_in->cmd_array[addr].arg1) {
         case setting_speed:
-            dcl_triC_setSpeed(cluster_in->device_in, cluster_in->arg2);
+            dcl_triC_setSpeed(cluster_in->device_in, cluster_in->cmd_array[addr].arg2);
             break;
         default:
             break;

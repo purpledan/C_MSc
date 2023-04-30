@@ -3,7 +3,7 @@
 //
 
 #include "dcl_threads.h"
-extern dcl_triC_status pump_status;
+extern dcl_triC_status global_pump_array[DCL_TRIC_PUMPNO];
 extern pthread_mutex_t status_mutex;
 extern dcl_queue_type worker_queue;
 
@@ -34,7 +34,7 @@ void *pumpThread(void *arg) {
     triC_fsm_cluster *thread_cluster = state_triC_fsmSetup(&worker_queue,
                                                           dev_trikC3000,
                                                           &status_mutex,
-                                                          &pump_status);
+                                                          global_pump_array);
 
 
     while (next_state != state_exit) {

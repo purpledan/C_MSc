@@ -15,7 +15,7 @@ dcl_queue_type worker_queue = {
         .mutex = PTHREAD_MUTEX_INITIALIZER,
         .alert = PTHREAD_COND_INITIALIZER
 };
-dcl_triC_status pump_status;
+dcl_triC_status global_pump_array[DCL_TRIC_PUMPNO];
 pthread_mutex_t status_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int main() {

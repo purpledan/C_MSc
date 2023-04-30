@@ -69,7 +69,7 @@ state_dcode state_dcodeFsm_blkStart(dcode_cluster *cluster_in) {
         if (!cluster_in->config_list) {
             cluster_in->config_list = malloc( sizeof (dcode_triC_config) );
             if (!cluster_in->config_list) {
-                perror("Failled to malloc config: ");
+                perror("Failed to malloc config: ");
                 return state_dcode_abort;
             }
             cluster_in->current_config = cluster_in->config_list;
