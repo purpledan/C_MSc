@@ -176,8 +176,10 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
         }
     }
     dcode_valve valve_in, valve_out;
-    int amount;
-    double read_amount;
+    int amount, rate;               // Amount of fluid to move at rate, sent to tricontFSM
+    double read_amount, read_speed; // Read values from dcode
+    bool speed_set = false;
+
     if (*args_buf.argv[0]) {
         valve_in = dcode_search_valve(cluster_in, args_buf.argv[0]);
         if (!valve_in.valid) {
@@ -216,9 +218,21 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
     } else {
         amount = 3000;  // Assuming the full 5ml syringe
     }
+    if (args_buf.argc >= 4) {
+        /* TODO: Requires some form of error checking */
+        speed_set = true;
+        char *unit;
+        read_speed = strtod(args_buf.argv[3], &unit);
+        if (*unit) {
+            dcode_unit read_unit = dcode_search_unit(unit);
+            rate = dcode_unit_convert(cluster_in, read_speed, read_unit);
+        } else {
+            rate = dcode_unit_convert(cluster_in, read_speed, unit_pre);
+        }
+    }
     if (valve_in.valid) {
         sprintf(cluster_in->current_step->block[cluster_in->current_step->index],
-                "%d,PUL,%d,%d",
+                "%d,PUL,%d,%d,400",
                 valve_in.pump_no,
                 valve_in.valve_no,
                 amount);
@@ -226,10 +240,11 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
     }
     if (valve_out.valid) {
         sprintf(cluster_in->current_step->block[cluster_in->current_step->index],
-                "%d,PSH,%d,%d",
+                "%d,PSH,%d,%d,%d",
                 valve_out.pump_no,
                 valve_out.valve_no,
-                amount);
+                amount,
+                speed_set ? rate : 0);
         cluster_in->current_step->index++;
     }
     return state_dcode_scan;
@@ -383,9 +398,9 @@ int dcode_unit_convert(dcode_cluster *cluster_in, double amount, dcode_unit unit
         case unit_pts:
             return (int) lround(amount);
         case unit_mlps:
-            return (int) lround( (amount / 600.0) );
+            return (int) lround( (amount * 600.0) );
         case unit_mlpm:
-            return 0;
+            return (int) lround((amount * 600.0)/60 );
         case unit_nan:  // TODO: Add method to check inputs of units
         default:
             return 0;

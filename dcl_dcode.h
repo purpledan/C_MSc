@@ -47,6 +47,7 @@ typedef enum dcode_unit {
     unit_pts,       // Location integer units
     unit_mlps,      // milliliters per second
     unit_mlpm,      // milliliters per minute
+    unit_pre,       // preset from C3000 manual
     unit_nan,
 }dcode_unit;
 

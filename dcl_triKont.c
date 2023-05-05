@@ -257,9 +257,17 @@ void dcl_triC_setSpeed(dcl_serialDevice_triC *device_in, int topV) {
     dcl_triC_write(device_in, cmd);
     dcl_triC_read(device_in, read_buf);
 }
-void dcl_triC_setTopV(dcl_serialDevice_triC *device_in, int topV) {
+void dcl_triC_setV(dcl_serialDevice_triC *device_in, int topV) {
     char cmd[TRIC_PRE_BUF] = "";
-    sprintf(cmd, "S%dR", topV);
+    int accV;
+    // See C3000 manual for hardcoded speed values
+    if (topV >= 1400) {
+        accV = 900;
+    } else {
+        accV = (int)lround( topV * 1.555 );
+    }
+
+    sprintf(cmd, "v%dV%dc%dR", accV, topV, accV);
     char read_buf[TRIC_READ_BUF] = "";
     dcl_triC_write(device_in, cmd);
     dcl_triC_read(device_in, read_buf);

@@ -15,6 +15,7 @@
 #define LIB_DCL_TRIKONT_H
 
 #include <stdbool.h>
+#include <math.h>
 
 #include "dcl_string.h"
 #include "dcl_serial.h"
@@ -67,7 +68,7 @@ int dcl_triC_getTopV(dcl_serialDevice_triC *device_in);
 int dcl_triC_getSlope(dcl_serialDevice_triC *device_in);
 bool dcl_triC_getInit(dcl_serialDevice_triC *device_in);
 void dcl_triC_setsV(dcl_serialDevice_triC *device_in, int startV);
-void dcl_triC_setTopV(dcl_serialDevice_triC *device_in, int topV);
+void dcl_triC_setV(dcl_serialDevice_triC *device_in, int topV);
 void dcl_triC_setSlope(dcl_serialDevice_triC *device_in, int accSlope);
 void dcl_triC_setRes(dcl_serialDevice_triC *device_in, int resolution);
 void dcl_triC_setSpeed(dcl_serialDevice_triC *device_in, int topV);

@@ -69,6 +69,7 @@ typedef struct triC_fsm_buf {
     char dev_flags;                     // Device specific flags
     int addr_arg;                       // Device address
     action_triC nxt_cmd;                // Next command to run
+    int arg0;
     int arg1;
     int arg2;
 }triC_fsm_buf;

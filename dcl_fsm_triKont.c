@@ -59,12 +59,6 @@ state_triC state_triC_init(triC_fsm_cluster *cluster_in) {
 
     }
     sleep(7);       // TODO: Add way so that state_transient is used instead
-    cluster_in->device_in->dev_select = 0;
-    dcl_triC_setSpeed(cluster_in->device_in, 20);
-    cluster_in->device_in->dev_select = 1;
-    dcl_triC_setSpeed(cluster_in->device_in, 20);
-    cluster_in->device_in->dev_select = 0;
-
 
     ret_flag = ext_triC_updateStatus(cluster_in);
     if (!ret_flag) {
@@ -133,6 +127,7 @@ state_triC state_triC_supervise(triC_fsm_cluster *cluster_in) {
         int addr = cluster_in->cmd_buf.addr_arg;
         if ( !(cluster_in->cmd_array[addr].dev_flags & BUFFUL) ) {
             cluster_in->cmd_array[addr].nxt_cmd = cluster_in->cmd_buf.nxt_cmd;
+            cluster_in->cmd_array[addr].arg0 = cluster_in->cmd_buf.arg0;
             cluster_in->cmd_array[addr].arg1 = cluster_in->cmd_buf.arg1;
             cluster_in->cmd_array[addr].arg2 = cluster_in->cmd_buf.arg2;
             cluster_in->cmd_array[addr].dev_flags |= BUFFUL;
@@ -344,9 +339,10 @@ int aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
         return 1;
     }
 
-    sscanf(cluster_in->fsm->msg_buf.argstr, "%d,%[A-Z],%d,%d",
+    sscanf(cluster_in->fsm->msg_buf.argstr, "%d,%[A-Z],%d,%d,%d",
            &cluster_in->cmd_buf.addr_arg,
            temp_string,
+           &cluster_in->cmd_buf.arg0,
            &cluster_in->cmd_buf.arg1,
            &cluster_in->cmd_buf.arg2);
 
@@ -401,24 +397,34 @@ void aux_triC_updateActionStatus(triC_fsm_cluster *cluster_in) {
 
 void action_triC_psh(triC_fsm_cluster *cluster_in) {
     int addr = (int)cluster_in->device_in->dev_select;
-    printf("Pump %d Dispensing %d from valve %d\n",
+    printf("Pump %d Dispensing %d from valve %d @ %d\n",
                             addr,
-                            cluster_in->cmd_array[addr].arg2,
-                            cluster_in->cmd_array[addr].arg1);
-    dcl_triC_dispenseAtomic(cluster_in->device_in,
                             cluster_in->cmd_array[addr].arg1,
+                            cluster_in->cmd_array[addr].arg0,
                             cluster_in->cmd_array[addr].arg2);
+    if (cluster_in->cmd_array[addr].arg2 == 0) {
+        dcl_triC_dispenseAtomic(cluster_in->device_in,
+                                cluster_in->cmd_array[addr].arg0,
+                                cluster_in->cmd_array[addr].arg1);
+    } else {
+        dcl_triC_setV(cluster_in->device_in,
+                      cluster_in->cmd_array[addr].arg2);
+        dcl_triC_dispenseAtomic(cluster_in->device_in,
+                                cluster_in->cmd_array[addr].arg0,
+                                cluster_in->cmd_array[addr].arg1);
+    }
+
     cluster_in->cmd_array[addr].dev_flags |= SPBUSY;
 }
 void action_triC_pul(triC_fsm_cluster *cluster_in) {
     int addr = (int)cluster_in->device_in->dev_select;
     printf("Pump %d Aspirating %d from valve %d\n",
                              addr,
-                             cluster_in->cmd_array[addr].arg2,
-                            cluster_in->cmd_array[addr].arg1);
+                             cluster_in->cmd_array[addr].arg1,
+                            cluster_in->cmd_array[addr].arg0);
     dcl_triC_aspirateAtomic(cluster_in->device_in,
-                            cluster_in->cmd_array[addr].arg1,
-                            cluster_in->cmd_array[addr].arg2);
+                            cluster_in->cmd_array[addr].arg0,
+                            cluster_in->cmd_array[addr].arg1);
     cluster_in->cmd_array[addr].dev_flags |= SPBUSY;
 }
 
@@ -426,19 +432,19 @@ void action_triC_set(triC_fsm_cluster *cluster_in) {
     int addr = (int)cluster_in->device_in->dev_select;
     printf("Pump %d Setting Valve to %d and plunger to %d\n",
            addr,
-           cluster_in->cmd_array[addr].arg1,
-           cluster_in->cmd_array[addr].arg2);
-    dcl_triC_setAtomic(cluster_in->device_in, cluster_in->cmd_array[addr].arg1,
-                       cluster_in->cmd_array[addr].arg2);
+           cluster_in->cmd_array[addr].arg0,
+           cluster_in->cmd_array[addr].arg1);
+    dcl_triC_setAtomic(cluster_in->device_in, cluster_in->cmd_array[addr].arg0,
+                       cluster_in->cmd_array[addr].arg1);
     cluster_in->cmd_array[addr].dev_flags |= SPBUSY;
 }
 
 void action_triC_cfg(triC_fsm_cluster *cluster_in) {
     /* No action, only changing a setting */
     int addr = (int)cluster_in->device_in->dev_select;
-    switch (cluster_in->cmd_array[addr].arg1) {
-        case setting_speed:
-            dcl_triC_setSpeed(cluster_in->device_in, cluster_in->cmd_array[addr].arg2);
+    switch (cluster_in->cmd_array[addr].arg0) {
+        case 1: //TODO: Remove magic Number
+            dcl_triC_setV(cluster_in->device_in, cluster_in->cmd_array[addr].arg1);
             break;
         default:
             break;
