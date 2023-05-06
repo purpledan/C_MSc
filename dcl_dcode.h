@@ -89,6 +89,7 @@ typedef struct dcode_cluster {
 typedef struct dcode_valve {
     int pump_no;
     int valve_no;
+    int rate;
     bool valid;
 }dcode_valve;
 

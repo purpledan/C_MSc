@@ -5,10 +5,10 @@
 NAME = Carrier
 ADDRESS = 0
 SPEED = 1MLPS
-1 = WATER0
-2 = RED
-3 = ETH0
-5 = OUTPUT0
+1 = WATER0;     1MLPS
+2 = RED;        1MLPS
+3 = ETH0;       0.75MLPS
+5 = OUTPUT0;    1MLPM
 6 = WASTE0
 @_PUMP_0
 

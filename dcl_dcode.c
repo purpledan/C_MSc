@@ -136,8 +136,16 @@ state_dcode state_dcodeFsm_config(dcode_cluster *cluster_in) {
 
     /* Check reserved args */
     if ( !strcmp(args_buf.argv[0], "SPEED") ) {
-        // TODO: Add unit conversion
-        cluster_in->current_config->default_speed = (int) strtol(args_buf.argv[1], NULL, 10);
+        char *unit;
+        int rate;
+        double read_rate = strtod(args_buf.argv[1], &unit);
+        if (*unit) {
+            dcode_unit read_unit = dcode_search_unit(unit);
+            rate = dcode_unit_convert(cluster_in, read_rate, read_unit);
+        } else {
+            rate = dcode_unit_convert(cluster_in, read_rate, unit_pts);
+        }
+        cluster_in->current_config->default_speed = rate;
     } else if ( !strcmp(args_buf.argv[0], "ADDRESS") ) {
         cluster_in->current_config->pump_address = (int) strtol(args_buf.argv[1], NULL, 10);
     } else if ( !strcmp(args_buf.argv[0], "NAME") ) {
@@ -147,8 +155,16 @@ state_dcode state_dcodeFsm_config(dcode_cluster *cluster_in) {
         if ( (valve_index = (int)strtol(args_buf.argv[0], NULL, 10)) ) { // CAST: Index has max value of 6 <<<<<<<<< INT_MAX
             strcpy(cluster_in->current_config->valve_names[valve_index - 1], args_buf.argv[1]); // -1 since people count valves starting from 1
             if ( args_buf.argc == 3 ) {
-                // TODO: Add unit conversion
-                cluster_in->current_config->valve_speeds[valve_index - 1] = (int)strtol(args_buf.argv[2], NULL, 10);
+                char *unit;
+                int rate;
+                double read_rate = strtod(args_buf.argv[1], &unit);
+                if (*unit) {
+                    dcode_unit read_unit = dcode_search_unit(unit);
+                    rate = dcode_unit_convert(cluster_in, read_rate, read_unit);
+                } else {
+                    rate = dcode_unit_convert(cluster_in, read_rate, unit_pts);
+                }
+                cluster_in->current_config->valve_speeds[valve_index - 1] = rate;
             }
         }
     }
@@ -232,10 +248,11 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
     }
     if (valve_in.valid) {
         sprintf(cluster_in->current_step->block[cluster_in->current_step->index],
-                "%d,PUL,%d,%d,400",
+                "%d,PUL,%d,%d,%d",
                 valve_in.pump_no,
                 valve_in.valve_no,
-                amount);
+                amount,
+                valve_in.rate);
         cluster_in->current_step->index++;
     }
     if (valve_out.valid) {
@@ -244,7 +261,7 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
                 valve_out.pump_no,
                 valve_out.valve_no,
                 amount,
-                speed_set ? rate : 0);
+                speed_set ? rate : valve_out.rate);
         cluster_in->current_step->index++;
     }
     return state_dcode_scan;
@@ -361,6 +378,11 @@ dcode_valve dcode_search_valve(dcode_cluster *cluster_in, char *name) {
             if ( !strcmp(name, selector->valve_names[i]) ) {
                 ret_valve.pump_no = selector->pump_address;
                 ret_valve.valve_no = i + 1;
+                if (selector->valve_speeds[i] == 0) {
+                    ret_valve.rate = selector->default_speed;
+                } else {
+                    ret_valve.rate = selector->valve_speeds[i];
+                }
                 ret_valve.valid = true;
                 selector = NULL;
                 break;
