@@ -418,13 +418,23 @@ void action_triC_psh(triC_fsm_cluster *cluster_in) {
 }
 void action_triC_pul(triC_fsm_cluster *cluster_in) {
     int addr = (int)cluster_in->device_in->dev_select;
-    printf("Pump %d Aspirating %d from valve %d\n",
+    printf("Pump %d Aspirating %d from valve %d @ %d\n",
                              addr,
                              cluster_in->cmd_array[addr].arg1,
-                            cluster_in->cmd_array[addr].arg0);
-    dcl_triC_aspirateAtomic(cluster_in->device_in,
                             cluster_in->cmd_array[addr].arg0,
-                            cluster_in->cmd_array[addr].arg1);
+                            cluster_in->cmd_array[addr].arg2);
+    if (cluster_in->cmd_array[addr].arg2 == 0) {
+        dcl_triC_aspirateAtomic(cluster_in->device_in,
+                                cluster_in->cmd_array[addr].arg0,
+                                cluster_in->cmd_array[addr].arg1);
+    } else {
+        dcl_triC_setV(cluster_in->device_in,
+                      cluster_in->cmd_array[addr].arg2);
+        dcl_triC_aspirateAtomic(cluster_in->device_in,
+                                cluster_in->cmd_array[addr].arg0,
+                                cluster_in->cmd_array[addr].arg1);
+    }
+
     cluster_in->cmd_array[addr].dev_flags |= SPBUSY;
 }
 
