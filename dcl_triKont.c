@@ -162,6 +162,8 @@ void dcl_triC_getSetup(dcl_serialDevice_triC *device_in) {
 int dcl_triC_getValve(dcl_serialDevice_triC *device_in) {
     char read_buf[TRIC_READ_BUF] = "";
     char *data = NULL;
+    dcl_triC_write(device_in, "Q");
+    dcl_triC_read(device_in,read_buf);
     dcl_triC_write(device_in, "?6");
     dcl_triC_read(device_in, read_buf);
     dcl_triC_parse(read_buf, &data);
