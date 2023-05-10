@@ -46,10 +46,12 @@ dcl_serialDevice_triC *dcl_triC_multiSetup(char name[], char serial_addr[], int 
     printf("Connecting to %s\n", dev.instrument_name);
     /* Open a fd to a device, device is critical so should abort if not opened */
     if ( !dcl_serial_setup(&dev) ) {
-        printf("Connection to %s successful\n", dev.instrument_name);
+        printf("File descriptor to %s ready\n", dev.instrument_name);
     } else {
         return NULL;
     }
+    /* TODO: Add way for pump check to fail properly */
+    //char stat_check = dcl_triC_getSByte(&internal);
 
     return &internal;
 }
@@ -162,8 +164,6 @@ void dcl_triC_getSetup(dcl_serialDevice_triC *device_in) {
 int dcl_triC_getValve(dcl_serialDevice_triC *device_in) {
     char read_buf[TRIC_READ_BUF] = "";
     char *data = NULL;
-    dcl_triC_write(device_in, "Q");
-    dcl_triC_read(device_in,read_buf);
     dcl_triC_write(device_in, "?6");
     dcl_triC_read(device_in, read_buf);
     dcl_triC_parse(read_buf, &data);

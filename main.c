@@ -20,43 +20,12 @@ pthread_mutex_t status_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int main() {
 
-    // Init MSG queue
-    dcl_queue_init(&worker_queue);
-    // Test MSG
-    /*
-    dcl_strmsg_type buffer = {
-            .terminate = 0,
-            .argstr = "0,PUL,1,1500\0"
-    };
 
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "1,PUL,2,1500\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "2,PUL,2,1500\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "3,PUL,2,1500\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "0,PSH,6,1500\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "1,PSH,6,1500\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "2,PSH,6,1500\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "3,PSH,2,1500\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "1,PUL,2,1500\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "2,PUL,2,3000\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "1,PSH,6,1500\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    strcpy(buffer.argstr, "2,PSH,6,1500\0");
-    dcl_thr_sendMsg(&worker_queue, &buffer);
-    */
+    dcl_queue_init(&worker_queue);
+
     int status;
 
     pthread_t worker_ID, parser_ID;
-
 
     status = pthread_create(&parser_ID, NULL, parserThread, NULL);
     if (status) {
