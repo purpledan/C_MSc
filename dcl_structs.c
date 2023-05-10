@@ -62,6 +62,19 @@ void *dcl_dList_elementRemove(dcl_dList_type *dList) {
     return x;
 }
 
+void *dcl_dList_elementSearch(dcl_dList_type *dList, void *x, bool (*compare) (const void *, const void *)) {
+    dcl_dList_type *p = dList;
+
+    while (p) {
+        if ( compare(p, x) ) {
+            break;
+        }
+        p = p->next;
+    }
+
+    return p;
+}
+
 void dcl_queue_init(dcl_queue_type *MsgQueue) {
     MsgQueue->first     = NULL;
     MsgQueue->last      = NULL;

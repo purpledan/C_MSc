@@ -34,6 +34,7 @@ typedef struct dcl_dList_type {
 dcl_dList_type *dcl_dList_create(void *x);
 void dcl_dList_elementAdd(dcl_dList_type *dList, void *x);
 void *dcl_dList_elementRemove(dcl_dList_type *dList);
+void *dcl_dList_elementSearch(dcl_dList_type *dList, void *x, bool (*compare) (const void *, const void *));
 
 /* Message queue:
  * Implements a generic message queue structure.

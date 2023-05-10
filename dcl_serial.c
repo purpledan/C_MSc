@@ -25,15 +25,13 @@ int dcl_serial_conf(dcl_serialDevice* device_in) {
 
     if ( !tcgetattr(device_in->fd, &tty) ) {
         cfsetspeed(&tty, B9600);
-        tty.c_cflag &= ~(PARENB | CSTOPB | CRTSCTS |CSIZE | HUPCL);
+        tty.c_cflag &= ~(PARENB | CSTOPB | CRTSCTS | CSIZE);
         tty.c_cflag |= (CREAD | CLOCAL | HUPCL | CS8);
         tty.c_iflag &= ~(IXON | IXOFF | IXANY | ICRNL);
-        tty.c_iflag |= (IGNPAR | ISIG | BRKINT | IXON);
-        tty.c_oflag &= ~( OPOST | ONLCR);
-        tty.c_lflag &= ~ICANON;
+        tty.c_iflag |= (IGNPAR | BRKINT | IGNCR);
+        tty.c_oflag &= ~( OPOST | ONLCR | OCRNL);
+        tty.c_lflag = ICANON;
         tty.c_lflag &= ~ECHO;
-        fcntl(device_in->fd, F_SETFL, !O_NONBLOCK);
-        tcflush(device_in->fd, TCIOFLUSH);
 
         return tcsetattr(device_in->fd, TCSANOW, &tty);
     }
@@ -52,7 +50,8 @@ int dcl_serial_setup(dcl_serialDevice* device_in) {
         perror("");
         return -1;
     }
-
+    fcntl(device_in->fd, F_SETFL, !O_NONBLOCK);
+    tcflush(device_in->fd, TCIOFLUSH);
     return 0;
 }
 
