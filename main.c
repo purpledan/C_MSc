@@ -19,7 +19,14 @@ dcl_triC_status global_pump_array[DCL_TRIC_PUMPNO];
 pthread_mutex_t status_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int main() {
+    printf("\x1b[2J");
+    printf("\x1b[H");
+    printf("\x1b[1;33mWelcome to DCL C3000 SP Arbiter v0.1\n");
+    printf("\x1b[22;34mThis is pre alpha software, things will go wrong\n");
+    printf("\x1b[2mThe author can't be held responsible if attached appliances inflict damages to itself, property, and or people. ");
+    printf("Further, in case of attached appliances gaining sentience, their actions can't be said to be endorsed by the author.\n\n");
 
+    printf("\x1b[0;32mStarting Arbiter & DCODE threads:\n");
 
     dcl_queue_init(&worker_queue);
 

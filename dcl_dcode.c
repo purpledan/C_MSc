@@ -13,7 +13,7 @@ dcode_cluster *state_dcodeFsm_setup(char *file_name, dcl_queue_type *queue_in) {
     strcpy(thread_cluster.file.file_name, file_name);
     thread_cluster.file.file_pointer = fopen(thread_cluster.file.file_name, "r");
     if (!thread_cluster.file.file_pointer) {
-        perror("Could not open dcode: ");
+        perror("\x1b[31mCould not open dcode\x1b[0m");
         abort();
     }
 
