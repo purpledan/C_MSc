@@ -117,7 +117,14 @@ state_dcode state_dcodeFsm_blkStart(dcode_cluster *cluster_in) {
 
 
     cluster_in->current_step->index = 0;
-    strcpy(cluster_in->current_step->step_name, &cluster_in->file.line_buf[1]); /* Skip the '!' */
+    char *argv[DCODE_ARGNO];
+    dcode_args args_buf;
+    args_buf.line_in = cluster_in->file.line_buf;
+    args_buf.argv = argv;
+    dcode_run_lexer(&args_buf);
+    /* TODO: Fix this stupid hack below */
+    args_buf.argv[0]++;/* Skip the '!' */
+    strcpy(cluster_in->current_step->step_name, args_buf.argv[0]);
 
     return state_dcode_scan;
 }
@@ -267,10 +274,16 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
 }
 
 state_dcode state_dcodeFsm_run(dcode_cluster *cluster_in) {
+    char *argv[DCODE_ARGNO];
+    dcode_args args_buf;
+    args_buf.line_in = cluster_in->file.line_buf;
+    args_buf.argv = argv;
+    dcode_run_lexer(&args_buf);
+
     cluster_in->current_step = cluster_in->step_list;
     bool step_found = false;
     while (!step_found) {
-        if ( !strcmp(cluster_in->file.line_buf, cluster_in->current_step->step_name) ) {
+        if ( !strcmp(args_buf.argv[0], cluster_in->current_step->step_name) ) {
             step_found = true;
         } else {
             if (!cluster_in->current_step->next_step) {
@@ -288,10 +301,24 @@ state_dcode state_dcodeFsm_run(dcode_cluster *cluster_in) {
             .terminate = 0,
     };
 
-    for (int i = 0; i < cluster_in->current_step->index; i++) {
-        strcpy(buffer.argstr, cluster_in->current_step->block[i]);
-        dcl_thr_sendMsg(cluster_in->fsm->queue, &buffer);
+    if (*args_buf.argv[1]) {
+        int repeat_amount = (int) strtol(args_buf.argv[1], NULL, 10);
+
+        for (int n = 0; n < repeat_amount; n++) {
+            for (int i = 0; i < cluster_in->current_step->index; i++) {
+                strcpy(buffer.argstr, cluster_in->current_step->block[i]);
+                dcl_thr_sendMsg(cluster_in->fsm->queue, &buffer);
+            }
+        }
+        return state_dcode_scan;
+
+    } else {
+        for (int i = 0; i < cluster_in->current_step->index; i++) {
+            strcpy(buffer.argstr, cluster_in->current_step->block[i]);
+            dcl_thr_sendMsg(cluster_in->fsm->queue, &buffer);
+        }
     }
+
     return state_dcode_scan;
 }
 
@@ -355,6 +382,27 @@ void dcode_config_lexer(dcode_args *args_in) {
     char *string_p = args_in->line_in;
     while (*string_p) {
         if (*string_p == ';' || *string_p == '=') {
+            *string_p = '\0';
+            string_p++;
+            args_in->argv[index] = string_p;
+            index++;
+        } else if (*string_p == '\n') {
+            *string_p = '\0';
+            break;
+        }
+        string_p++;
+    }
+    args_in->argc = index;
+}
+
+void dcode_run_lexer(dcode_args *args_in) {
+    int index= 0;
+    args_in->argv[index] = args_in->line_in;
+    index++;
+
+    char *string_p = args_in->line_in;
+    while (*string_p) {
+        if (*string_p == ';') {
             *string_p = '\0';
             string_p++;
             args_in->argv[index] = string_p;

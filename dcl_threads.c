@@ -23,7 +23,7 @@ void *pumpThread(void *arg) {
              [state_terminate] = state_triC_terminate};
     state_triC next_state = state_init;
 
-    int addr_array[DCL_TRIC_PUMPNO] = {0};
+    int addr_array[DCL_TRIC_PUMPNO] = {0, 1};
     dcl_serialDevice_triC *dev_trikC3000 = dcl_triC_multiSetup("TriKont Syringe",
                                                          "/dev/ttyUSB0",
                                                          addr_array);
