@@ -164,7 +164,8 @@ state_dcode state_dcodeFsm_config(dcode_cluster *cluster_in) {
             if ( args_buf.argc == 3 ) {
                 char *unit;
                 int rate;
-                double read_rate = strtod(args_buf.argv[2], &unit);                if (*unit) {
+                double read_rate = strtod(args_buf.argv[2], &unit);
+                if (*unit) {
                     dcode_unit read_unit = dcode_search_unit(unit);
                     rate = dcode_unit_convert(cluster_in, read_rate, read_unit);
                 } else {

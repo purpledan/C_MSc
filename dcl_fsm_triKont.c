@@ -120,8 +120,12 @@ state_triC state_triC_supervise(triC_fsm_cluster *cluster_in) {
         /* Signal that MSG has been read from queue */
         cluster_in->fsm->opt_field &= ~MSGRDY;
         if (special) {
-            cluster_in->fsm->opt_field |= SYNCRO;
-            return state_delegate;
+            if (cluster_in->cmd_buf.nxt_cmd == action_syn) {
+                cluster_in->fsm->opt_field |= SYNCRO;
+                return state_delegate;
+            } else if (cluster_in->cmd_buf.nxt_cmd == action_nan) {
+                return state_delegate;
+            }
         }
         /* Attempt to store MSG in dev buffer */
         int addr = cluster_in->cmd_buf.addr_arg;
@@ -224,6 +228,7 @@ state_triC state_triC_resolve(triC_fsm_cluster *cluster_in) {
 }
 
 state_triC state_triC_action(triC_fsm_cluster *cluster_in) {
+    dcl_printTime();
     printf("Performing: ");
     switch (cluster_in->cmd_array[cluster_in->device_in->dev_select].nxt_cmd) {
         case action_pul:
@@ -333,9 +338,16 @@ int aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
     char temp_string[8] = "";
 
     if ( !isdigit(cluster_in->fsm->msg_buf.argstr[0]) ) {
-        sscanf(cluster_in->fsm->msg_buf.argstr, "!,%[A-Z]",
-        temp_string);
-        cluster_in->cmd_buf.nxt_cmd = action_syn;
+        char temp_arg[32] = "";
+        sscanf(cluster_in->fsm->msg_buf.argstr, "!,%[A-Z],%[A-Z]",
+        temp_string,
+        temp_arg);
+        if (!strcmp("SYN", temp_string)) {
+            cluster_in->cmd_buf.nxt_cmd = action_syn;
+        } else if (!strcmp("MSG", temp_string)) {
+            printf("MSG: %s\n", temp_arg);
+            cluster_in->cmd_buf.nxt_cmd = action_nan;
+        }
         return 1;
     }
 
@@ -354,8 +366,6 @@ int aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
         cluster_in->cmd_buf.nxt_cmd = action_cfg;
     } else if (!strcmp("SET", temp_string)) {
         cluster_in->cmd_buf.nxt_cmd = action_set;
-    } else if (!strcmp("SYN", temp_string)) {
-        cluster_in->cmd_buf.nxt_cmd = action_syn;
     } else {
         cluster_in->cmd_buf.nxt_cmd = action_err;
     }

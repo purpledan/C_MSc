@@ -121,6 +121,12 @@
 		<Unit filename="/home/dan/C_MSc/dcl_threads.h">
 			<Option target="C_MSc"/>
 		</Unit>
+		<Unit filename="/home/dan/C_MSc/dcl_time.c">
+			<Option target="C_MSc"/>
+		</Unit>
+		<Unit filename="/home/dan/C_MSc/dcl_time.h">
+			<Option target="C_MSc"/>
+		</Unit>
 		<Unit filename="/home/dan/C_MSc/dcl_triKont.c">
 			<Option target="C_MSc"/>
 		</Unit>

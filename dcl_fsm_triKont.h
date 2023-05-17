@@ -23,8 +23,10 @@
 
 #include <stdbool.h>
 #include <ctype.h>
+#include <time.h>
 #include "dcl_triKont.h"
 #include "dcl_fsm.h"
+#include "dcl_time.h"
 
 /* Bitfield defines for triC_fsm status */
 #define MSGRDY  0b00000001      // A MSG is ready for action
@@ -42,6 +44,7 @@ typedef enum action_triC {
     action_cfg,                 // CFG string command
     action_set,                 // SET string command
     action_syn,                 // SYN string command
+    action_nan,                 // No command
     action_err                  // Parse failure
 } action_triC;
 
