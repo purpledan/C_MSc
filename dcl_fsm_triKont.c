@@ -339,7 +339,7 @@ int aux_triC_parseMsg(triC_fsm_cluster *cluster_in) {
 
     if ( !isdigit(cluster_in->fsm->msg_buf.argstr[0]) ) {
         char temp_arg[32] = "";
-        sscanf(cluster_in->fsm->msg_buf.argstr, "!,%[A-Z],%[A-Z]",
+        sscanf(cluster_in->fsm->msg_buf.argstr, "!,%[A-Z],%[A-Za-z0-9-]",
         temp_string,
         temp_arg);
         if (!strcmp("SYN", temp_string)) {

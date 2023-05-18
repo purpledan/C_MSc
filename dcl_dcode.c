@@ -191,6 +191,11 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
                     "!,SYN");
             cluster_in->current_step->index++;
             return state_dcode_scan;
+        } else if (!strcmp(args_buf.argv[0], "MSG") ) {
+            sprintf(cluster_in->current_step->block[cluster_in->current_step->index],
+                    "!,MSG,STEP-5");
+            cluster_in->current_step->index++;
+            return state_dcode_scan;
         } else {
             fprintf(stderr,
                     "Line: %d, not enough arguments, did you forget '->'?",
@@ -306,6 +311,8 @@ state_dcode state_dcodeFsm_run(dcode_cluster *cluster_in) {
         int repeat_amount = (int) strtol(args_buf.argv[1], NULL, 10);
 
         for (int n = 0; n < repeat_amount; n++) {
+            sprintf(buffer.argstr, "!,MSG,%s-%d", cluster_in->current_step->step_name, n + 1);
+            dcl_thr_sendMsg(cluster_in->fsm->queue, &buffer);
             for (int i = 0; i < cluster_in->current_step->index; i++) {
                 strcpy(buffer.argstr, cluster_in->current_step->block[i]);
                 dcl_thr_sendMsg(cluster_in->fsm->queue, &buffer);
