@@ -1,6 +1,9 @@
-//
-// Created by dan on 31/01/23.
-//
+/*******************************************************************************
+ * Copyright (c) 2023. Daniel Janse van Rensburg - All Rights Reserved
+ * Dan's Control Library (DCL) is subject to future license changes.
+ ******************************************************************************/
+/* Created by dan on 31/01/23.*/
+
 #include "dcl_fsm.h"
 
 int dcl_fsm_getMsg(dcl_fsm_cluster_type *cluster_in) {

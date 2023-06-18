@@ -2,10 +2,7 @@
  * Copyright (c) 2023. Daniel Janse van Rensburg - All Rights Reserved
  * Dan's Control Library (DCL) is subject to future license changes.
  ******************************************************************************/
-
-//
-// Created by dan on 17/05/23.
-//
+/* Created by dan on 17/05/23. */
 
 #include "dcl_time.h"
 

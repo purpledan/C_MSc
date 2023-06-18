@@ -1,6 +1,8 @@
-//
-// Created by Daniel on 2023/01/23.
-//
+/*******************************************************************************
+ * Copyright (c) 2023. Daniel Janse van Rensburg - All Rights Reserved
+ * Dan's Control Library (DCL) is subject to future license changes.
+ ******************************************************************************/
+/* Created by Daniel on 2023/01/23. */
 
 #include "dcl_threads.h"
 extern dcl_triC_status global_pump_array[DCL_TRIC_PUMPNO];
