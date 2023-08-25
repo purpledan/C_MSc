@@ -266,7 +266,7 @@ void dcl_triC_setV(dcl_serialDevice_triC *device_in, int topV) {
     if (topV >= 1400) {
         accV = 900;
     } else {
-        accV = (int)lround( topV * 1.555 );
+        accV = (int)lround( topV * 0.643 );
     }
 
     sprintf(cmd, "v%dV%dc%dR", accV, topV, accV);
