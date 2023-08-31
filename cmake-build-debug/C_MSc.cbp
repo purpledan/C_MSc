@@ -97,6 +97,12 @@
 		<Unit filename="/home/dan/REPOS/C_MSc/dcl_fsm_triKont.h">
 			<Option target="C_MSc"/>
 		</Unit>
+		<Unit filename="/home/dan/REPOS/C_MSc/dcl_heat.c">
+			<Option target="C_MSc"/>
+		</Unit>
+		<Unit filename="/home/dan/REPOS/C_MSc/dcl_heat.h">
+			<Option target="C_MSc"/>
+		</Unit>
 		<Unit filename="/home/dan/REPOS/C_MSc/dcl_serial.c">
 			<Option target="C_MSc"/>
 		</Unit>
