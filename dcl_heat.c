@@ -48,6 +48,7 @@ void dcl_heat_getStatus(dcl_serialDevice_heat *device_in) {
     char read_buf[HEAT_READ_BUF] = "";
     dcl_heat_write(device_in, "STATUS");
     dcl_heat_read(device_in, read_buf);
+    dcl_heat_flipybit(read_buf);
     /*TODO: PARSE STATUS */
 }
 
@@ -55,6 +56,7 @@ void dcl_heat_getActTemp(dcl_serialDevice_heat *device_in) {
     char read_buf[HEAT_READ_BUF] = "";
     dcl_heat_write(device_in, "IN_PV_1");
     dcl_heat_read(device_in, read_buf);
+    dcl_heat_flipybit(read_buf);
     /*TODO: PARSE TEMP*/
 }
 
@@ -62,6 +64,7 @@ void dcl_heat_getActSpeed(dcl_serialDevice_heat *device_in) {
     char read_buf[HEAT_READ_BUF] = "";
     dcl_heat_write(device_in, "IN_PV_5");
     dcl_heat_read(device_in, read_buf);
+    dcl_heat_flipybit(read_buf);
     /*TODO: PARSE SPEED*/
 }
 
@@ -69,6 +72,7 @@ void dcl_heat_getTMode(dcl_serialDevice_heat *device_in) {
     char read_buf[HEAT_READ_BUF] = "";
     dcl_heat_write(device_in, "IN_MODE_4");
     dcl_heat_read(device_in, read_buf);
+    dcl_heat_flipybit(read_buf);
     /*TODO: PARSE MODE*/
 }
 
@@ -76,12 +80,14 @@ void dcl_heat_getSetTemp(dcl_serialDevice_heat *device_in) {
     char read_buf[HEAT_READ_BUF] = "";
     dcl_heat_write(device_in, "IN_SP_1");
     dcl_heat_read(device_in, read_buf);
+    dcl_heat_flipybit(read_buf);
     /*TODO: PARSE TEMP*/
 }
 void dcl_heat_getSetSpeed(dcl_serialDevice_heat *device_in) {
     char read_buf[HEAT_READ_BUF] = "";
     dcl_heat_write(device_in, "IN_SP_3");
     dcl_heat_read(device_in, read_buf);
+    dcl_heat_flipybit(read_buf);
     /*TODO: PARSE SPEED*/
 }
 
@@ -159,4 +165,34 @@ int dcl_heat_read(dcl_serialDevice_heat *device_in, char *read_buf) {
         return -1;
     }
     return read_len;
+}
+
+int dcl_heat_flipybit(char *read_buf) {
+    /* The stupid hotplate returns chars with the most significant bit set at random times, switch them off */
+    if (!read_buf) {
+        return -1;
+    }
+    for (int i = 0; i < HEAT_READ_BUF - 1; i++) {
+        read_buf[i] &= (char)0x7F; /* AND with NOT0x80 */
+    }
+
+    return 0;
+}
+
+char *dcl_heat_argRet(char *read_buf) {
+    /* Skips past the returned text and returns a pointer to the first numeric arg */
+    if (!read_buf) {
+        return NULL;
+    }
+
+    int index = 0;
+    while (*read_buf) {
+        if ( isdigit(*read_buf) ) {
+            return read_buf;
+        } else {
+            read_buf++;
+        }
+    }
+
+    return NULL;
 }

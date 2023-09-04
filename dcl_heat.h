@@ -15,6 +15,7 @@
 #define C_MSC_DCL_HEAT_H
 
 #include <stdbool.h>
+#include <ctype.h>
 #include <math.h>
 
 #include "dcl_string.h"
@@ -64,5 +65,6 @@ void dcl_heat_switchStirring(dcl_serialDevice_heat *device_in, bool stirring);
 /* Raw IO Functions */
 int dcl_heat_write(dcl_serialDevice_heat *device_in, char *cmd);
 int dcl_heat_read(dcl_serialDevice_heat *device_in, char *read_buf);
-
+int dcl_heat_flipybit(char *read_buf);
+char *dcl_heat_argRet(char *read_buf);
 #endif //C_MSC_DCL_HEAT_H
