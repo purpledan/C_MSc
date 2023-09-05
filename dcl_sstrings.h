@@ -25,11 +25,11 @@ void dcl_sstr_remWSpace(char *str_in, size_t sstrlen);
 /* Removes comments from a string, i.e. any chars after the comment symbol */
 void dcl_sstr_remComments(char *str_in, char commentsym, size_t sstrlen);
 
-/* Searches for numeric value and returs pointer to first digit */
+/* Searches for numeric value and returns pointer to first digit */
 char *dcl_sstr_retNum_p(char *str_in, size_t sstrlen);
 
-/* Searches for numeric value, returns pointer to first digit, and eliminates trailing garbage */
-char *dcl_sstr_retNumClean_p(char *str_in, size_t sstrlen);
+/* Searches for whitespace and returns pointer to first occurrence */
+char *dcl_sstr_retWSpace_p(char *str_in, size_t sstrlen);
 
 /* Separates delimited string into an array of pointers to strings, option to specify delimiters and wSpace separation */
 int dcl_sstr_strsep_pp(char *argv[], char *str_in, char delimiter, bool useWspace, size_t argvlen, size_t sstrlen);

@@ -15,10 +15,11 @@
 #define C_MSC_DCL_HEAT_H
 
 #include <stdbool.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
 
-#include "dcl_string.h"
+#include "dcl_sstrings.h"
 #include "dcl_serial.h"
 #include "dcl_config.h"
 

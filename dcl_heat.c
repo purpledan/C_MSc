@@ -57,7 +57,10 @@ void dcl_heat_getActTemp(dcl_serialDevice_heat *device_in) {
     dcl_heat_write(device_in, "IN_PV_1");
     dcl_heat_read(device_in, read_buf);
     dcl_heat_flipybit(read_buf);
-    /*TODO: PARSE TEMP*/
+    char *valp = dcl_sstr_retNum_p(read_buf, HEAT_READ_BUF);
+    if (valp) {
+        device_in->dev_status->actual_temp = strtod(valp, NULL);
+    }
 }
 
 void dcl_heat_getActSpeed(dcl_serialDevice_heat *device_in) {
@@ -65,7 +68,10 @@ void dcl_heat_getActSpeed(dcl_serialDevice_heat *device_in) {
     dcl_heat_write(device_in, "IN_PV_5");
     dcl_heat_read(device_in, read_buf);
     dcl_heat_flipybit(read_buf);
-    /*TODO: PARSE SPEED*/
+    char *valp = dcl_sstr_retNum_p(read_buf, HEAT_READ_BUF);
+    if (valp) {
+        device_in->dev_status->actual_speed = (int) strtol(valp, NULL, 10);
+    }
 }
 
 void dcl_heat_getTMode(dcl_serialDevice_heat *device_in) {
@@ -73,7 +79,10 @@ void dcl_heat_getTMode(dcl_serialDevice_heat *device_in) {
     dcl_heat_write(device_in, "IN_MODE_4");
     dcl_heat_read(device_in, read_buf);
     dcl_heat_flipybit(read_buf);
-    /*TODO: PARSE MODE*/
+    char *valp = dcl_sstr_retNum_p(read_buf, HEAT_READ_BUF);
+    if (valp) {
+        device_in->dev_status->temp_mode= (bool) strtol(valp, NULL, 10);
+    }
 }
 
 void dcl_heat_getSetTemp(dcl_serialDevice_heat *device_in) {
@@ -81,14 +90,20 @@ void dcl_heat_getSetTemp(dcl_serialDevice_heat *device_in) {
     dcl_heat_write(device_in, "IN_SP_1");
     dcl_heat_read(device_in, read_buf);
     dcl_heat_flipybit(read_buf);
-    /*TODO: PARSE TEMP*/
+    char *valp = dcl_sstr_retNum_p(read_buf, HEAT_READ_BUF);
+    if (valp) {
+        device_in->dev_status->set_temp = strtod(valp, NULL);
+    }
 }
 void dcl_heat_getSetSpeed(dcl_serialDevice_heat *device_in) {
     char read_buf[HEAT_READ_BUF] = "";
     dcl_heat_write(device_in, "IN_SP_3");
     dcl_heat_read(device_in, read_buf);
     dcl_heat_flipybit(read_buf);
-    /*TODO: PARSE SPEED*/
+    char *valp = dcl_sstr_retNum_p(read_buf, HEAT_READ_BUF);
+    if (valp) {
+        device_in->dev_status->set_speed = (int) strtol(valp, NULL, 10);
+    }
 }
 
 void dcl_heat_setTemp(dcl_serialDevice_heat *device_in, double set_temp) {

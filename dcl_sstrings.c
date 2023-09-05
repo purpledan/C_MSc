@@ -61,3 +61,46 @@ char *dcl_sstr_retNum_p(char *str_in, size_t sstrlen) {
 
     return strp;
 }
+
+char *dcl_sstr_retWSpace_p(char *str_in, size_t sstrlen) {
+    char *strp = str_in;
+
+    if (!strp) {
+        return NULL;
+    }
+
+    for (size_t i = 0; i < sstrlen; i++) {
+        if (!*strp) {
+            break;
+        }
+
+        if (isspace(*strp)) {
+            return strp;
+        }
+        strp++;
+    }
+
+    return strp;
+}
+
+int dcl_sstr_strsep_pp(char *argv[], char *str_in, char delimiter, bool useWspace, size_t argvlen, size_t sstrlen) {
+    //TODO: Add NULL checking
+    int index = 0;
+
+    argv[index] = str_in;
+    index++;
+
+    char *strp = str_in;
+    //TODO: Bounds checking with argvlen and sstrlen
+    while (*strp) {
+        if (*strp == delimiter || ( useWspace && isspace(*strp) ) ) {
+            *strp = '\0';
+            strp++;
+            argv[index] = strp;
+            index++;
+        }
+        strp++;
+    }
+
+    return index;
+}
