@@ -40,7 +40,7 @@ void dcl_heat_init(dcl_serialDevice_heat *device_in) {
 }
 
 void dcl_heat_getStatus(dcl_serialDevice_heat *device_in) {
-    dcl_heat_getActTemp(device_in);
+    dcl_heat_getActTemp(device_in, 1);
     dcl_heat_getActSpeed(device_in);
     dcl_heat_getSetTemp(device_in);
     dcl_heat_getSetSpeed(device_in);
@@ -52,12 +52,16 @@ void dcl_heat_getStatus(dcl_serialDevice_heat *device_in) {
     /*TODO: PARSE STATUS */
 }
 
-void dcl_heat_getActTemp(dcl_serialDevice_heat *device_in) {
+void dcl_heat_getActTemp(dcl_serialDevice_heat *device_in, bool sensor) {
     char read_buf[HEAT_READ_BUF] = "";
-    dcl_heat_write(device_in, "IN_PV_1");
+    if (sensor) {
+        dcl_heat_write(device_in, "IN_PV_1");
+    } else {
+        dcl_heat_write(device_in, "IN_PV_3");
+    }
     dcl_heat_read(device_in, read_buf);
     dcl_heat_flipybit(read_buf);
-    char *valp = dcl_sstr_retNum_p(read_buf, HEAT_READ_BUF);
+    char *valp = dcl_sstr_retWSpace_p(read_buf, HEAT_READ_BUF);
     if (valp) {
         device_in->dev_status->actual_temp = strtod(valp, NULL);
     }
@@ -68,7 +72,7 @@ void dcl_heat_getActSpeed(dcl_serialDevice_heat *device_in) {
     dcl_heat_write(device_in, "IN_PV_5");
     dcl_heat_read(device_in, read_buf);
     dcl_heat_flipybit(read_buf);
-    char *valp = dcl_sstr_retNum_p(read_buf, HEAT_READ_BUF);
+    char *valp = dcl_sstr_retWSpace_p(read_buf, HEAT_READ_BUF);
     if (valp) {
         device_in->dev_status->actual_speed = (int) strtol(valp, NULL, 10);
     }
@@ -79,7 +83,7 @@ void dcl_heat_getTMode(dcl_serialDevice_heat *device_in) {
     dcl_heat_write(device_in, "IN_MODE_4");
     dcl_heat_read(device_in, read_buf);
     dcl_heat_flipybit(read_buf);
-    char *valp = dcl_sstr_retNum_p(read_buf, HEAT_READ_BUF);
+    char *valp = dcl_sstr_retWSpace_p(read_buf, HEAT_READ_BUF);
     if (valp) {
         device_in->dev_status->temp_mode= (bool) strtol(valp, NULL, 10);
     }
@@ -90,7 +94,7 @@ void dcl_heat_getSetTemp(dcl_serialDevice_heat *device_in) {
     dcl_heat_write(device_in, "IN_SP_1");
     dcl_heat_read(device_in, read_buf);
     dcl_heat_flipybit(read_buf);
-    char *valp = dcl_sstr_retNum_p(read_buf, HEAT_READ_BUF);
+    char *valp = dcl_sstr_retWSpace_p(read_buf, HEAT_READ_BUF);
     if (valp) {
         device_in->dev_status->set_temp = strtod(valp, NULL);
     }
@@ -100,7 +104,7 @@ void dcl_heat_getSetSpeed(dcl_serialDevice_heat *device_in) {
     dcl_heat_write(device_in, "IN_SP_3");
     dcl_heat_read(device_in, read_buf);
     dcl_heat_flipybit(read_buf);
-    char *valp = dcl_sstr_retNum_p(read_buf, HEAT_READ_BUF);
+    char *valp = dcl_sstr_retWSpace_p(read_buf, HEAT_READ_BUF);
     if (valp) {
         device_in->dev_status->set_speed = (int) strtol(valp, NULL, 10);
     }
@@ -192,22 +196,4 @@ int dcl_heat_flipybit(char *read_buf) {
     }
 
     return 0;
-}
-
-char *dcl_heat_argRet(char *read_buf) {
-    /* Skips past the returned text and returns a pointer to the first numeric arg */
-    if (!read_buf) {
-        return NULL;
-    }
-
-    int index = 0;
-    while (*read_buf) {
-        if ( isdigit(*read_buf) ) {
-            return read_buf;
-        } else {
-            read_buf++;
-        }
-    }
-
-    return NULL;
 }

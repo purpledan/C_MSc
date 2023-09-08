@@ -83,24 +83,32 @@ char *dcl_sstr_retWSpace_p(char *str_in, size_t sstrlen) {
     return strp;
 }
 
-int dcl_sstr_strsep_pp(char *argv[], char *str_in, char delimiter, bool useWspace, size_t argvlen, size_t sstrlen) {
-    //TODO: Add NULL checking
+int dcl_sstr_strsep(char *argv[], char *str_in, char delimiter, bool useWspace, size_t argvlen, size_t sstrlen) {
+    /* TODO: Double check for any overflow shit */
     int index = 0;
-
+    if (!argv || !str_in) {
+        return -1;
+    }
     argv[index] = str_in;
     index++;
 
     char *strp = str_in;
-    //TODO: Bounds checking with argvlen and sstrlen
-    while (*strp) {
+    for (size_t i = 0; i < sstrlen; i ++) {
+        if (!*strp) { /* Reaching end of string breaks out of loop */
+            break;
+        }
         if (*strp == delimiter || ( useWspace && isspace(*strp) ) ) {
             *strp = '\0';
             strp++;
             argv[index] = strp;
             index++;
         }
+        if (index >= argvlen) { /* Don't exceed the number of args allowed */
+            break;
+        }
         strp++;
     }
 
-    return index;
+
+    return index + 1; /* We want the number of args, not just the index */
 }

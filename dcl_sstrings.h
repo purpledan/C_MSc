@@ -32,7 +32,7 @@ char *dcl_sstr_retNum_p(char *str_in, size_t sstrlen);
 char *dcl_sstr_retWSpace_p(char *str_in, size_t sstrlen);
 
 /* Separates delimited string into an array of pointers to strings, option to specify delimiters and wSpace separation */
-int dcl_sstr_strsep_pp(char *argv[], char *str_in, char delimiter, bool useWspace, size_t argvlen, size_t sstrlen);
+int dcl_sstr_strsep(char *argv[], char *str_in, char delimiter, bool useWspace, size_t argvlen, size_t sstrlen);
 
 
 #endif //C_MSC_DCL_SSTRINGS_H

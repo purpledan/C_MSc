@@ -53,7 +53,7 @@ void dcl_heat_destroy(dcl_serialDevice_heat *device_in);
 /* Device Specific Functions */
 void dcl_heat_init(dcl_serialDevice_heat *device_in);
 void dcl_heat_getStatus(dcl_serialDevice_heat *device_in);
-void dcl_heat_getActTemp(dcl_serialDevice_heat *device_in);
+void dcl_heat_getActTemp(dcl_serialDevice_heat *device_in, bool sensor);
 void dcl_heat_getActSpeed(dcl_serialDevice_heat *device_in);
 void dcl_heat_getTMode(dcl_serialDevice_heat *device_in);
 void dcl_heat_getSetTemp(dcl_serialDevice_heat *device_in);
@@ -67,5 +67,4 @@ void dcl_heat_switchStirring(dcl_serialDevice_heat *device_in, bool stirring);
 int dcl_heat_write(dcl_serialDevice_heat *device_in, char *cmd);
 int dcl_heat_read(dcl_serialDevice_heat *device_in, char *read_buf);
 int dcl_heat_flipybit(char *read_buf);
-char *dcl_heat_argRet(char *read_buf);
 #endif //C_MSC_DCL_HEAT_H
