@@ -477,9 +477,9 @@ int dcode_unit_convert(dcode_cluster *cluster_in, double amount, dcode_unit unit
         case unit_pts:
             return (int) lround(amount);
         case unit_mlps:
-            return (int) lround( (amount * 1200.0) ); //Speed values for C3000 is double position values See pg. 140 of the manual
+            return (int) lround( (amount * 600.0) );
         case unit_mlpm:
-            return (int) lround((amount * 1200.0)/60 );
+            return (int) lround((amount * 600.0)/60 );
         case unit_nan:  // TODO: Add method to check inputs of units
         default:
             return 0;
