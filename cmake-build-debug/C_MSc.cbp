@@ -115,6 +115,12 @@
 		<Unit filename="/home/dan/REPOS/C_MSc/dcl_serial.h">
 			<Option target="C_MSc"/>
 		</Unit>
+		<Unit filename="/home/dan/REPOS/C_MSc/dcl_sstrings.c">
+			<Option target="C_MSc"/>
+		</Unit>
+		<Unit filename="/home/dan/REPOS/C_MSc/dcl_sstrings.h">
+			<Option target="C_MSc"/>
+		</Unit>
 		<Unit filename="/home/dan/REPOS/C_MSc/dcl_string.c">
 			<Option target="C_MSc"/>
 		</Unit>
