@@ -27,7 +27,7 @@ void *pumpThread(void *arg) {
 
     int addr_array[DCL_TRIC_PUMPNO] = {0, 1};
     dcl_serialDevice_triC *dev_trikC3000 = dcl_triC_multiSetup("TriKont Syringe",
-                                                         "/dev/ttyUSB0",
+                                                         "/dev/cuaU0",
                                                          addr_array);
     if (!dev_trikC3000) {
         abort();

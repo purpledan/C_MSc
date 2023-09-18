@@ -4,7 +4,7 @@
 	<Project>
 		<Option title="C_MSc"/>
 		<Option makefile_is_custom="1"/>
-		<Option compiler="gcc"/>
+		<Option compiler="clang"/>
 		<Option virtualFolders="CMake Files\;"/>
 		<Build>
 			<Target title="all">
@@ -22,11 +22,9 @@
 				<Option working_dir="/home/dan/REPOS/C_MSc/cmake-build-debug"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
-				<Option compiler="gcc"/>
+				<Option compiler="clang"/>
 				<Compiler>
-					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/13.1.1/include"/>
-					<Add directory="/usr/local/include"/>
-					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/13.1.1/include-fixed"/>
+					<Add directory="/usr/lib/clang/14.0.5/include"/>
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
@@ -41,11 +39,9 @@
 				<Option working_dir="/home/dan/REPOS/C_MSc/cmake-build-debug"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
-				<Option compiler="gcc"/>
+				<Option compiler="clang"/>
 				<Compiler>
-					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/13.1.1/include"/>
-					<Add directory="/usr/local/include"/>
-					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/13.1.1/include-fixed"/>
+					<Add directory="/usr/lib/clang/14.0.5/include"/>
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
@@ -89,6 +85,12 @@
 			<Option target="C_MSc"/>
 		</Unit>
 		<Unit filename="/home/dan/REPOS/C_MSc/dcl_fsm.h">
+			<Option target="C_MSc"/>
+		</Unit>
+		<Unit filename="/home/dan/REPOS/C_MSc/dcl_fsm_heat.c">
+			<Option target="C_MSc"/>
+		</Unit>
+		<Unit filename="/home/dan/REPOS/C_MSc/dcl_fsm_heat.h">
 			<Option target="C_MSc"/>
 		</Unit>
 		<Unit filename="/home/dan/REPOS/C_MSc/dcl_fsm_triKont.c">
