@@ -72,6 +72,12 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/home/dan/REPOS/C_MSc/dcl_arbiter.c">
+			<Option target="C_MSc"/>
+		</Unit>
+		<Unit filename="/home/dan/REPOS/C_MSc/dcl_arbiter.h">
+			<Option target="C_MSc"/>
+		</Unit>
 		<Unit filename="/home/dan/REPOS/C_MSc/dcl_config.h">
 			<Option target="C_MSc"/>
 		</Unit>

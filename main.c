@@ -30,7 +30,11 @@ o888bood8P'    `Y8bood8P'  o888ooooood8
 #include "dcl_fsm.h"
 
 /* Global Variables */
-dcl_queue_type worker_queue = {
+dcl_queue_type pump_queue = {
+        .mutex = PTHREAD_MUTEX_INITIALIZER,
+        .alert = PTHREAD_COND_INITIALIZER
+};
+dcl_queue_type arb_queue = {
         .mutex = PTHREAD_MUTEX_INITIALIZER,
         .alert = PTHREAD_COND_INITIALIZER
 };
@@ -47,29 +51,38 @@ int main() {
 
     printf("\x1b[0;32mStarting Arbiter & DCODE threads:\n");
 
-    dcl_queue_init(&worker_queue);
+    dcl_queue_init(&pump_queue);
 
     int status;
 
-    pthread_t worker_ID, parser_ID;
+    pthread_t pumpTh_ID, parser_ID, arb_ID;
 
     status = pthread_create(&parser_ID, NULL, parserThread, NULL);
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }
 
-    status = pthread_create(&worker_ID, NULL, pumpThread, NULL);
+    status = pthread_create(&pumpTh_ID, NULL, pumpThread, NULL);
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }
 
+    status = pthread_create(&arb_ID, NULL, arbThread, NULL);
+    if (status) {
+        printf("Thread Fuckup, %d\n", status);
+    }
 
     status = pthread_join(parser_ID, NULL);
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }
 
-    status = pthread_join(worker_ID, NULL);
+    status = pthread_join(pumpTh_ID, NULL);
+    if (status) {
+        printf("Thread Fuckup, %d\n", status);
+    }
+
+    status = pthread_join(arb_ID, NULL);
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }

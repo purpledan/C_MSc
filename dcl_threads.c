@@ -7,7 +7,8 @@
 #include "dcl_threads.h"
 extern dcl_triC_status global_pump_array[DCL_TRIC_PUMPNO];
 extern pthread_mutex_t status_mutex;
-extern dcl_queue_type worker_queue;
+extern dcl_queue_type pump_queue;
+extern dcl_queue_type arb_queue;
 
 void *pumpThread(void *arg) {
     /* Finite state machine array */
@@ -33,7 +34,7 @@ void *pumpThread(void *arg) {
         abort();
     }
 
-    triC_fsm_cluster *thread_cluster = state_triC_fsmSetup(&worker_queue,
+    triC_fsm_cluster *thread_cluster = state_triC_fsmSetup(&pump_queue,
                                                           dev_trikC3000,
                                                           &status_mutex,
                                                           global_pump_array);
@@ -60,7 +61,7 @@ void *parserThread(void *arg) {
             [state_dcode_abort] = state_dcodeFsm_abort};
     state_dcode next_state = state_dcode_init;
 
-    dcode_cluster *thread_cluster = state_dcodeFsm_setup( "test.dcode", &worker_queue);
+    dcode_cluster *thread_cluster = state_dcodeFsm_setup( "test.dcode", &pump_queue);
 
     while (next_state != state_dcode_exit) {
         next_state = fsm_dcode[next_state](thread_cluster);
@@ -68,4 +69,14 @@ void *parserThread(void *arg) {
 
     fclose(thread_cluster->file.file_pointer);
     return 0;
+}
+
+void *arbThread(void *arg) {
+    /* Finite state machine array */
+    state_dcode ( *fsm_arb[arb_numStates] )(arb_cluster * cluster_in) =
+            {[state_arb_init] = state_arbFsm_init,
+             [state_arb_idle] = state_arbFsm_idle,
+             [state_arb_exit] = state_arbFsm_exit,
+             [state_arb_getMsg] = state_arbFsm_getMsg};
+
 }

@@ -13,9 +13,11 @@
 #include "dcl_serial.h"
 #include "dcl_fsm_triKont.h"
 #include "dcl_dcode.h"
+#include "dcl_arbiter.h"
 
 void *pumpThread(void *arg);
 
 void *parserThread(void *arg);
 
+void *arbThread(void *arg);
 #endif //C_MSC_DCL_THREADS_H
