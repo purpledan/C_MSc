@@ -34,8 +34,8 @@ typedef struct arb_msgBuf {
 } arb_msgBuf;
 
 typedef struct arb_cluster {
-    dcl_fsm_cluster_type *triC_fsm;     // Generic FSM cluster for pumps
-    dcl_fsm_cluster_type *arb_fsm;      // FSM cluster for arbiter
+    dcl_fsm_cluster *triC_fsm;     // Generic FSM cluster for pumps
+    dcl_fsm_cluster *arb_fsm;      // FSM cluster for arbiter
     pthread_mutex_t *ext_mutex;         // Link to ext_array status mutex
     bool enable_external;               // Enable link to ext_array status
     bool enable_log;                    // Enable writing log file
@@ -43,4 +43,6 @@ typedef struct arb_cluster {
 
 arb_cluster  *state_arbFsm_setup(dcl_queue_type *arb_queue_in, dcl_queue_type *tric_queue_in);
 state_arb state_arbFsm_init(arb_cluster *cluster_in);
+state_arb state_arbFsm_idle(arb_cluster *cluster_in);
+state_arb state_arbFsm_getMsg(arb_cluster *cluster_in);
 #endif //C_MSC_DCL_ARBITER_H

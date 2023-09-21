@@ -10,7 +10,7 @@ triC_fsm_cluster *state_triC_fsmSetup(dcl_queue_type *fsm_msg_queue,
                                       dcl_serialDevice_triC *triC_dev,
                                       pthread_mutex_t *ext_mutex,
                                       dcl_triC_status *ext_status) {
-    static dcl_fsm_cluster_type fsm_cluster;
+    static dcl_fsm_cluster fsm_cluster;
     fsm_cluster.queue = fsm_msg_queue;
 
     static triC_fsm_cluster thread_cluster;

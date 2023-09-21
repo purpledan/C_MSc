@@ -41,13 +41,26 @@ dcl_queue_type arb_queue = {
 dcl_triC_status global_pump_array[DCL_TRIC_PUMPNO];
 pthread_mutex_t status_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-int main() {
+int main(int argc, char *argv[]) {
+    /* Print temporary welcome to user */
     printf("\x1b[2J");
     printf("\x1b[H");
-    printf("\x1b[1;33mWelcome to DCL C3000 SP Arbiter v0.1\n");
+    printf("\x1b[1;33mWelcome to DCL C3000 SP Arbiter v0.3.0\n");
     printf("\x1b[22;34mThis is pre alpha software, things will go wrong\n");
     printf("\x1b[2mThe author can't be held responsible if attached appliances inflict damages to itself, property, and or people. ");
     printf("Further, in case of attached appliances gaining sentience, their actions can't be said to be endorsed by the author.\n\n");
+
+    /* Make sure that there is a filename as argument and that we can open it */
+    if (argc < 2) {
+        printf("Missing DCODE file, please enter filename as argument\n");
+        return EXIT_FAILURE;
+    }
+
+    FILE *fp = fopen(argv[1], "r");
+    if (!fp) {
+        perror("\x1b[31mCould not open DCODE\x1b[0m");
+        return EXIT_FAILURE;
+    }
 
     printf("\x1b[0;32mStarting Arbiter & DCODE threads:\n");
 
@@ -57,7 +70,7 @@ int main() {
 
     pthread_t pumpTh_ID, parser_ID, arb_ID;
 
-    status = pthread_create(&parser_ID, NULL, parserThread, NULL);
+    status = pthread_create(&parser_ID, NULL, parserThread, fp);
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }
@@ -86,5 +99,5 @@ int main() {
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }
-    return 0;
+    return EXIT_SUCCESS;
 }

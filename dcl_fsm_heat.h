@@ -64,7 +64,7 @@ typedef struct heat_fsm_buf {
 }heat_fsm_buf;
 
 typedef struct heat_fsm_cluster {
-    dcl_fsm_cluster_type *fsm;          // Generic FSM cluster
+    dcl_fsm_cluster *fsm;          // Generic FSM cluster
     dcl_serialDevice_heat *device_in;   // TriC Device in
     pthread_mutex_t *ext_mutex;         // Link to ext_array status mutex
     dcl_heat_status *ext_array;          // Link to ext_array status

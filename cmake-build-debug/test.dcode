@@ -1,6 +1,13 @@
 # This is an example of a dcode program
 # Config block
 
+!_HOTPLATE_0
+NAME = Radleys
+ADDRESS = 0
+SPEED = 1000RPM
+TEMP = 50C
+@_HOTPLATE_0
+
 !_PUMP_0
 NAME = Carrier
 ADDRESS = 0

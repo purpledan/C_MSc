@@ -78,7 +78,7 @@ typedef struct triC_fsm_buf {
 }triC_fsm_buf;
 
 typedef struct triC_fsm_cluster {
-    dcl_fsm_cluster_type *fsm;          // Generic FSM cluster
+    dcl_fsm_cluster *fsm;          // Generic FSM cluster
     dcl_serialDevice_triC *device_in;   // TriC Device in
     pthread_mutex_t *ext_mutex;         // Link to ext_array status mutex
     dcl_triC_status *ext_array;          // Link to ext_array status

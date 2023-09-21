@@ -6,34 +6,29 @@
 
 #include "dcl_dcode.h"
 
-dcode_cluster *state_dcodeFsm_setup(char *file_name, dcl_queue_type *queue_in) {
-    static dcl_fsm_cluster_type fsm_cluster;
+dcode_cluster *state_dcodeM_setup(FILE *fp, dcl_queue_type *queue_in) {
+    /* Setup static memory locations for FSM info and cluster */
+    static dcl_fsm_cluster fsm_cluster;
     fsm_cluster.queue = queue_in;
 
     static dcode_cluster thread_cluster;
     thread_cluster.fsm = &fsm_cluster;
-    strcpy(thread_cluster.file.file_name, file_name);
-    thread_cluster.file.file_pointer = fopen(thread_cluster.file.file_name, "r");
-    if (!thread_cluster.file.file_pointer) {
-        perror("\x1b[31mCould not open dcode\x1b[0m");
-        abort();
-    }
+    thread_cluster.file.file_pointer = fp;
 
     return &thread_cluster;
 }
 
-state_dcode state_dcodeFsm_init(dcode_cluster *cluster_in) {
+state_dcode state_dcodeM_init(dcode_cluster *cluster_in) {
+    /* Init starting values for dcode parser */
     cluster_in->file.line_no = 0;
     cluster_in->fsm->opt_field = '\0';
     cluster_in->block = block_outside;
     cluster_in->step_list = NULL;
     cluster_in->config_list = NULL;
-    //cluster_in->config.pump_resolution = 3000;      //TODO: Make non magic number
-    //cluster_in->config.syringe_volume = 5.0;        //TODO: Also make non magic number
     return state_dcode_scan;
 }
 
-state_dcode state_dcodeFsm_scan(dcode_cluster *cluster_in) {
+state_dcode state_dcodeM_scan(dcode_cluster *cluster_in) {
     char temp_string[DCL_DCODE_MAXLINE_LEN];
     if ( !fgets(temp_string, DCL_DCODE_MAXLINE_LEN - 1, cluster_in->file.file_pointer) ) {
         cluster_in->fsm->opt_field |= SCNCMP;
@@ -66,29 +61,52 @@ state_dcode state_dcodeFsm_scan(dcode_cluster *cluster_in) {
     }
 }
 
-state_dcode state_dcodeFsm_blkStart(dcode_cluster *cluster_in) {
+state_dcode state_dcodeM_blkStart(dcode_cluster *cluster_in) {
     if ( strstr(cluster_in->file.line_buf, "_PUMP_") ) {
         if (!cluster_in->config_list) {
-            cluster_in->config_list = malloc( sizeof (dcode_triC_config) );
+            cluster_in->config_list = malloc( sizeof (dcode_dev_config) );
             if (!cluster_in->config_list) {
                 perror("Failed to malloc config: ");
                 return state_dcode_abort;
             }
             cluster_in->current_config = cluster_in->config_list;
         } else {
-            while (cluster_in->current_config->next_pump) {
-                cluster_in->current_config = cluster_in->current_config->next_pump;
+            while (cluster_in->current_config->next_dev) {
+                cluster_in->current_config = cluster_in->current_config->next_dev;
             }
-            cluster_in->current_config->next_pump = malloc( sizeof (dcode_triC_config) );
-            cluster_in->current_config = cluster_in->current_config->next_pump;
+            cluster_in->current_config->next_dev = malloc(sizeof (dcode_dev_config) );
+            cluster_in->current_config = cluster_in->current_config->next_dev;
             if (!cluster_in->current_config) {
                 perror("Failled to malloc config: ");
                 return state_dcode_abort;
             }
         }
-        cluster_in->current_config->next_pump = NULL;
+        cluster_in->current_config->next_dev = NULL;
         cluster_in->block = block_config;
         return state_dcode_scan;
+    } else if ( strstr(cluster_in->file.line_buf, "_HOTPLATE_") ) {
+        if (!cluster_in->config_list) { // TODO: make this a function, copy paste of above!!!
+            cluster_in->config_list = malloc( sizeof (dcode_dev_config) );
+            if (!cluster_in->config_list) {
+                perror("Failed to malloc config");
+                return state_dcode_abort;
+            }
+            cluster_in->current_config = cluster_in->config_list;
+        } else {
+            while (cluster_in->current_config->next_dev) {
+                cluster_in->current_config = cluster_in->current_config->next_dev;
+            }
+            cluster_in->current_config->next_dev = malloc(sizeof (dcode_dev_config) );
+            cluster_in->current_config = cluster_in->current_config->next_dev;
+            if (!cluster_in->current_config) {
+                perror("Failled to malloc config: ");
+                return state_dcode_abort;
+            }
+        }
+        cluster_in->current_config->next_dev = NULL;
+        cluster_in->block = block_config;
+        return state_dcode_scan;
+
     } else if ( strstr(cluster_in->file.line_buf, "RUN") ) {
         cluster_in->block = block_run;
         return state_dcode_scan;
@@ -97,7 +115,7 @@ state_dcode state_dcodeFsm_blkStart(dcode_cluster *cluster_in) {
     }
 
     if ( !cluster_in->step_list ) {
-        cluster_in->step_list = malloc( sizeof (dcode_triC_steps) );
+        cluster_in->step_list = malloc( sizeof (dcode_dev_steps) );
         if (!cluster_in->step_list) {
             perror("Failed to malloc step: ");
             return state_dcode_abort;
@@ -108,7 +126,7 @@ state_dcode state_dcodeFsm_blkStart(dcode_cluster *cluster_in) {
         while (cluster_in->current_step->next_step) {
             cluster_in->current_step = cluster_in->current_step->next_step;
         }
-        cluster_in->current_step->next_step = malloc(sizeof (dcode_triC_steps) );
+        cluster_in->current_step->next_step = malloc(sizeof (dcode_dev_steps) );
         cluster_in->current_step = cluster_in->current_step->next_step;
         if (!cluster_in->current_step) {
             perror("Failed to malloc step: ");
@@ -154,15 +172,26 @@ state_dcode state_dcodeFsm_config(dcode_cluster *cluster_in) {
         } else {
             rate = dcode_unit_convert(cluster_in, read_rate, unit_pts);
         }
-        cluster_in->current_config->default_speed = rate;
+        cluster_in->current_config->default_arg = rate;
     } else if ( !strcmp(args_buf.argv[0], "ADDRESS") ) {
-        cluster_in->current_config->pump_address = (int) strtol(args_buf.argv[1], NULL, 10);
+        cluster_in->current_config->dev_num = (int) strtol(args_buf.argv[1], NULL, 10);
     } else if ( !strcmp(args_buf.argv[0], "NAME") ) {
-        strcpy(cluster_in->current_config->pump_name, args_buf.argv[1]);
+        strcpy(cluster_in->current_config->dev_name, args_buf.argv[1]);
+    } else if (!strcmp(args_buf.argv[0], "TEMP") ) {
+        char *unit;
+        double read_temp = strtod(args_buf.argv[1], &unit);
+        double temp;
+        if (*unit) {
+            dcode_unit read_unit = dcode_search_unit(unit);
+            temp = dcode_unit_convert(cluster_in, read_temp, read_unit);
+        } else {
+            temp = dcode_unit_convert(cluster_in, read_temp, unit_pts);
+        }
+        cluster_in->current_config->default_float = temp;
     } else {
         int valve_index;
         if ( (valve_index = (int)strtol(args_buf.argv[0], NULL, 10)) ) { // CAST: Index has max value of 6 <<<<<<<<< INT_MAX
-            strcpy(cluster_in->current_config->valve_names[valve_index - 1], args_buf.argv[1]); // -1 since people count valves starting from 1
+            strcpy(cluster_in->current_config->arg_names[valve_index - 1], args_buf.argv[1]); // -1 since people count valves starting from 1
             if ( args_buf.argc == 3 ) {
                 char *unit;
                 int rate;
@@ -173,7 +202,7 @@ state_dcode state_dcodeFsm_config(dcode_cluster *cluster_in) {
                 } else {
                     rate = dcode_unit_convert(cluster_in, read_rate, unit_pts);
                 }
-                cluster_in->current_config->valve_speeds[valve_index - 1] = rate;
+                cluster_in->current_config->arg_values[valve_index - 1] = rate;
             }
         }
     }
@@ -429,16 +458,16 @@ void dcode_run_lexer(dcode_args *args_in) {
 dcode_valve dcode_search_valve(dcode_cluster *cluster_in, char *name) {
     dcode_valve ret_valve;
     ret_valve.valid = false;
-    dcode_triC_config *selector = cluster_in->config_list;
+    dcode_dev_config *selector = cluster_in->config_list;
     while (selector) {
         for (int i = 0; i < DCL_TRIC_VALVENO; i++) {
-            if ( !strcmp(name, selector->valve_names[i]) ) {
-                ret_valve.pump_no = selector->pump_address;
+            if ( !strcmp(name, selector->arg_names[i]) ) {
+                ret_valve.pump_no = selector->dev_num;
                 ret_valve.valve_no = i + 1;
-                if (selector->valve_speeds[i] == 0) {
-                    ret_valve.rate = selector->default_speed;
+                if (selector->arg_values[i] == 0) {
+                    ret_valve.rate = selector->default_arg;
                 } else {
-                    ret_valve.rate = selector->valve_speeds[i];
+                    ret_valve.rate = selector->arg_values[i];
                 }
                 ret_valve.valid = true;
                 selector = NULL;
@@ -446,7 +475,7 @@ dcode_valve dcode_search_valve(dcode_cluster *cluster_in, char *name) {
             }
         }
         if (selector) {
-            selector = selector->next_pump;
+            selector = selector->next_dev;
         }
     }
 
@@ -463,6 +492,14 @@ dcode_unit dcode_search_unit(char *unit_in) {
         return unit_mlps;
     }  else if ( !strcmp(unit_in, "MLPM") ) {
         return unit_mlpm;
+    } else if ( !strcmp(unit_in, "RPM") ) {
+        return unit_rpm;
+    } else if ( !strcmp(unit_in, "RPS") ) {
+        return unit_rps;
+    } else if ( !strcmp(unit_in, "C") ) {
+        return unit_C;
+    } else if ( !strcmp(unit_in, "K") ) {
+        return unit_kel;
     } else {
         return unit_nan;
     }
@@ -480,6 +517,14 @@ int dcode_unit_convert(dcode_cluster *cluster_in, double amount, dcode_unit unit
             return (int) lround( (amount * 1200.0) ); //Speed values for C3000 is double position values See pg. 140 of the manual
         case unit_mlpm:
             return (int) lround((amount * 1200.0)/60 );
+        case unit_rpm:
+            return  (int) lround(amount);
+        case unit_rps:
+            return  (int) lround(amount * 60);
+        case unit_C:
+            return (int) lround(amount);
+        case unit_kel:
+            return  (int) lround(amount - 273.15);
         case unit_nan:  // TODO: Add method to check inputs of units
         default:
             return 0;

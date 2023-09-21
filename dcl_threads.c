@@ -51,9 +51,9 @@ void *pumpThread(void *arg) {
 void *parserThread(void *arg) {
     /* Finite state machine array */
     state_dcode ( *fsm_dcode[dcode_numstates] )(dcode_cluster *cluster_in) =
-            {[state_dcode_init] = state_dcodeFsm_init,
-             [state_dcode_scan] = state_dcodeFsm_scan,
-             [state_dcode_blkStart] = state_dcodeFsm_blkStart,
+            {[state_dcode_init] = state_dcodeM_init,
+             [state_dcode_scan] = state_dcodeM_scan,
+             [state_dcode_blkStart] = state_dcodeM_blkStart,
              [state_dcode_blkEnd] = state_dcodeFsm_blkEnd,
              [state_dcode_config] = state_dcodeFsm_config,
              [state_dcode_step] = state_dcodeFsm_step,
@@ -61,7 +61,7 @@ void *parserThread(void *arg) {
             [state_dcode_abort] = state_dcodeFsm_abort};
     state_dcode next_state = state_dcode_init;
 
-    dcode_cluster *thread_cluster = state_dcodeFsm_setup( "test.dcode", &pump_queue);
+    dcode_cluster *thread_cluster = state_dcodeM_setup( arg, &pump_queue);
 
     while (next_state != state_dcode_exit) {
         next_state = fsm_dcode[next_state](thread_cluster);
@@ -73,10 +73,17 @@ void *parserThread(void *arg) {
 
 void *arbThread(void *arg) {
     /* Finite state machine array */
-    state_dcode ( *fsm_arb[arb_numStates] )(arb_cluster * cluster_in) =
+    state_arb ( *fsm_arb[arb_numStates] )(arb_cluster *cluster_in) =
             {[state_arb_init] = state_arbFsm_init,
              [state_arb_idle] = state_arbFsm_idle,
-             [state_arb_exit] = state_arbFsm_exit,
              [state_arb_getMsg] = state_arbFsm_getMsg};
 
+    state_arb next_state = state_arb_init;
+    arb_cluster *thread_cluster = state_arbFsm_setup( &arb_queue, &pump_queue);
+
+    while (next_state != state_arb_exit) {
+        next_state = fsm_arb[next_state](thread_cluster);
+    }
+
+    return 0;
 }

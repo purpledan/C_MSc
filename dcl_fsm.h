@@ -26,17 +26,17 @@ typedef struct dcl_fsm_cluster {
     char                opt_field;      // Bit field for internal FSM status flags
     bool                queue_empty;    // True if queue is empty, set by getMsg functions
     bool                fsm_terminate;  // True if termination request was received by getMsg
-} dcl_fsm_cluster_type;
+} dcl_fsm_cluster;
 
 /** Dequeues message from multithreaded queue
  *
  * @param cluster_in
  * @return
  */
-int dcl_fsm_getMsg(dcl_fsm_cluster_type *cluster_in);
+int dcl_fsm_getMsg(dcl_fsm_cluster *cluster_in);
 
-int dcl_fsm_thr_getMsg(dcl_fsm_cluster_type *cluster_in);
-int dcl_fsm_thr_timed_getMsg(dcl_fsm_cluster_type *cluster_in);
+int dcl_fsm_thr_getMsg(dcl_fsm_cluster *cluster_in);
+int dcl_fsm_thr_timed_getMsg(dcl_fsm_cluster *cluster_in);
 
 int dcl_thr_sendMsg(dcl_queue_type *fsm_queue, dcl_strmsg_type *buf_in);
 int dcl_thr_timed_sendMsg(dcl_queue_type *fsm_queue, dcl_strmsg_type *buf_in);

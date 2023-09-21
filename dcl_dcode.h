@@ -50,11 +50,14 @@ typedef enum dcode_unit {
     unit_mlps,      // milliliters per second
     unit_mlpm,      // milliliters per minute
     unit_pre,       // preset from C3000 manual
+    unit_rpm,       // Revolutions per min
+    unit_rps,       // Revolutions per sec
+    unit_kel,       // Temperature in kelvin
+    unit_C,         // Temperature in Celsius
     unit_nan,
 }dcode_unit;
 
 typedef struct dcode_file {
-    char file_name[DCL_DCODE_NAME_LEN];                             // Name of the .dcode input file
     FILE *file_pointer;                                             //
     char line_buf[DCL_DCODE_MAXLINE_LEN];                           // Buffer to hold read line
     char *selector;                                                 // Used to pass index around between states
@@ -62,30 +65,31 @@ typedef struct dcode_file {
     fpos_t step_pos[DCL_DCODE_MAXSTEPS];                            // Positions of steps in file
 }dcode_file;
 
-typedef struct dcode_triC_config {
-    int pump_address;                                               // Pump Address
-    char pump_name[DCL_DCODE_NAME_LEN];                             // User given name for pump
-    char valve_names[DCL_TRIC_VALVENO][DCL_DCODE_NAME_LEN];         // User given names for valves
-    int valve_speeds[DCL_TRIC_VALVENO];                             // Speed setting for valves
-    int default_speed;
-    struct dcode_triC_config *next_pump;                            // Next Config block
-}dcode_triC_config;
+typedef struct dcode_dev_config {
+    int dev_num;                                                   // Device Number
+    char dev_name[DCL_DCODE_NAME_LEN];                             // User given name for device
+    char arg_names[DCL_TRIC_VALVENO][DCL_DCODE_NAME_LEN];          // User given names for arguments
+    int arg_values[DCL_TRIC_VALVENO];                              // User given argument values
+    int default_arg;
+    double default_float;
+    struct dcode_dev_config *next_dev;                            // Next Config block
+}dcode_dev_config;
 
-typedef struct dcode_triC_steps {
+typedef struct dcode_dev_steps {
     char step_name[DCL_DCODE_NAME_LEN];                             // Name of current step
     int index;                                                      // Index of current action
     char block[32][DCL_STRMSG_LEN];                                 // action data block TODO: Make dynamic
-    struct dcode_triC_steps *next_step;                             // Next step block
-}dcode_triC_steps;
+    struct dcode_dev_steps *next_step;                             // Next step block
+}dcode_dev_steps;
 
 typedef struct dcode_cluster {
-    dcl_fsm_cluster_type *fsm;
+    dcl_fsm_cluster *fsm;
     dcode_file file;
     dcode_block block;                                              // Current parsing block
-    dcode_triC_steps *step_list;                                    // Linked list containing steps
-    dcode_triC_steps *current_step;
-    dcode_triC_config *config_list;                                       // Future use to pass config via files
-    dcode_triC_config *current_config;
+    dcode_dev_steps *step_list;                                    // Linked list containing steps
+    dcode_dev_steps *current_step;
+    dcode_dev_config *config_list;                                       // Future use to pass config via files
+    dcode_dev_config *current_config;
 }dcode_cluster;
 
 typedef struct dcode_valve {
@@ -101,10 +105,10 @@ typedef struct dcode_args {
     char **argv;
 }dcode_args;
 
-dcode_cluster *state_dcodeFsm_setup(char *file_name, dcl_queue_type *queue_in);
-state_dcode state_dcodeFsm_init(dcode_cluster *cluster_in);
-state_dcode state_dcodeFsm_scan(dcode_cluster *cluster_in);
-state_dcode state_dcodeFsm_blkStart(dcode_cluster *cluster_in);
+dcode_cluster *state_dcodeM_setup(FILE *fp, dcl_queue_type *queue_in);
+state_dcode state_dcodeM_init(dcode_cluster *cluster_in);
+state_dcode state_dcodeM_scan(dcode_cluster *cluster_in);
+state_dcode state_dcodeM_blkStart(dcode_cluster *cluster_in);
 state_dcode state_dcodeFsm_blkEnd(dcode_cluster *cluster_in);
 state_dcode state_dcodeFsm_config(dcode_cluster *cluster_in);
 state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in);

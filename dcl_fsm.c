@@ -6,7 +6,7 @@
 
 #include "dcl_fsm.h"
 
-int dcl_fsm_getMsg(dcl_fsm_cluster_type *cluster_in) {
+int dcl_fsm_getMsg(dcl_fsm_cluster *cluster_in) {
     char ret_flag;
     int msg_len;
 
@@ -30,14 +30,14 @@ int dcl_fsm_getMsg(dcl_fsm_cluster_type *cluster_in) {
     return ret_flag;
 }
 
-int dcl_fsm_thr_getMsg(dcl_fsm_cluster_type *cluster_in) {
+int dcl_fsm_thr_getMsg(dcl_fsm_cluster *cluster_in) {
     pthread_mutex_lock(&cluster_in->queue->mutex);
     int ret_flag = dcl_fsm_getMsg(cluster_in);
     pthread_mutex_unlock(&cluster_in->queue->mutex);
     return ret_flag;
 }
 
-int dcl_fsm_thr_timed_getMsg(dcl_fsm_cluster_type *cluster_in) {
+int dcl_fsm_thr_timed_getMsg(dcl_fsm_cluster *cluster_in) {
     pthread_mutex_lock(&cluster_in->queue->mutex);
     // TODO: pthread_mutex_timedlock(&cluster_in->queue->mutex, );
     int ret_flag = dcl_fsm_getMsg(cluster_in);

@@ -7,9 +7,9 @@
 #include "dcl_arbiter.h"
 
 arb_cluster  *state_arbFsm_setup(dcl_queue_type *arb_queue_in, dcl_queue_type *tric_queue_in) {
-    static dcl_fsm_cluster_type arb_fsm_cluster;
+    static dcl_fsm_cluster arb_fsm_cluster;
     arb_fsm_cluster.queue = arb_queue_in;
-    static dcl_fsm_cluster_type pump_cluster;
+    static dcl_fsm_cluster pump_cluster;
     pump_cluster.queue = tric_queue_in;
 
     static arb_cluster thread_cluster;
@@ -23,7 +23,7 @@ arb_cluster  *state_arbFsm_setup(dcl_queue_type *arb_queue_in, dcl_queue_type *t
 state_arb state_arbFsm_init(arb_cluster *cluster_in) {
     printf("Arbiter Init:\n");
 
-    return state_arb_getMsg;
+    return state_arb_exit;
 }
 
 state_arb state_arbFsm_idle(arb_cluster *cluster_in) {
