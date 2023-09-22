@@ -105,6 +105,12 @@ state_dcode state_dcodeM_blkStart(dcode_cluster *cluster_in) {
         }
         cluster_in->current_config->next_dev = NULL;
         cluster_in->block = block_config;
+
+        /* Hotplate only has two main functions, heating and stirring, so they are added here */
+        strcpy(cluster_in->current_config->arg_names[0], "HEATING");
+        strcpy(cluster_in->current_config->arg_names[1], "STIRRING");
+        strcpy(cluster_in->current_config->arg_names[2], "ON");
+        strcpy(cluster_in->current_config->arg_names[3], "OFF");
         return state_dcode_scan;
 
     } else if ( strstr(cluster_in->file.line_buf, "RUN") ) {
@@ -216,6 +222,7 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
     args_buf.argv = argv;
     dcode_step_lexer(&args_buf);
     // TODO: Abstract creation of STRMSGs
+
     if (args_buf.argc < 2) {
         if ( !strcmp(args_buf.argv[0], "SYNC") ) {
             sprintf(cluster_in->current_step->block[cluster_in->current_step->index],
@@ -234,6 +241,7 @@ state_dcode state_dcodeFsm_step(dcode_cluster *cluster_in) {
             return state_dcode_abort;
         }
     }
+
     dcode_valve valve_in, valve_out;
     int amount, rate;               // Amount of fluid to move at rate, sent to tricontFSM
     double read_amount, read_speed; // Read values from dcode

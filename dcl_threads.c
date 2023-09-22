@@ -55,7 +55,7 @@ void *parserThread(void *arg) {
              [state_dcode_scan] = state_dcodeM_scan,
              [state_dcode_blkStart] = state_dcodeM_blkStart,
              [state_dcode_blkEnd] = state_dcodeFsm_blkEnd,
-             [state_dcode_config] = state_dcodeFsm_config,
+             [state_dcode_config] = state_dcodeFsm_config,-
              [state_dcode_step] = state_dcodeFsm_step,
              [state_dcode_run] = state_dcodeFsm_run,
             [state_dcode_abort] = state_dcodeFsm_abort};
