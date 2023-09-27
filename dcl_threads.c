@@ -55,7 +55,7 @@ void *parserThread(void *arg) {
              [state_dcode_scan] = state_dcodeM_scan,
              [state_dcode_blkStart] = state_dcodeM_blkStart,
              [state_dcode_blkEnd] = state_dcodeFsm_blkEnd,
-             [state_dcode_config] = state_dcodeFsm_config,-
+             [state_dcode_config] = state_dcodeFsm_config,
              [state_dcode_step] = state_dcodeFsm_step,
              [state_dcode_run] = state_dcodeFsm_run,
             [state_dcode_abort] = state_dcodeFsm_abort};
@@ -76,7 +76,8 @@ void *arbThread(void *arg) {
     state_arb ( *fsm_arb[arb_numStates] )(arb_cluster *cluster_in) =
             {[state_arb_init] = state_arbFsm_init,
              [state_arb_idle] = state_arbFsm_idle,
-             [state_arb_getMsg] = state_arbFsm_getMsg};
+             [state_arb_getMsg] = state_arbFsm_getMsg,
+             [state_arb_readMsg] = state_arbFsm_readMsg};
 
     state_arb next_state = state_arb_init;
     arb_cluster *thread_cluster = state_arbFsm_setup( &arb_queue, &pump_queue);

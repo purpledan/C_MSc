@@ -27,6 +27,11 @@ state_arb state_arbFsm_init(arb_cluster *cluster_in) {
 }
 
 state_arb state_arbFsm_idle(arb_cluster *cluster_in) {
+    /* Is there a message ready? */
+    if ( cluster_in->arb_fsm->opt_field & MSGRDY ) {
+        /* Read MSG and store */
+        return state_arb_readMsg;
+    }
     return state_arb_getMsg;
 }
 
@@ -47,4 +52,69 @@ state_arb state_arbFsm_getMsg(arb_cluster *cluster_in) {
         default:
             return state_arb_critical;
     }
+}
+
+state_arb state_arbFsm_readMsg(arb_cluster *cluster_in) {
+    char *argv[DCL_DCODE_ARGNUM];
+
+    int argc = dcl_sstr_strsep(argv, cluster_in->arb_fsm->msg_buf.argstr,
+                               ',',
+                               false,
+                               DCL_DCODE_ARGNUM,
+                               DCL_STRMSG_LEN);
+
+    if (argc == 0) {
+        /* TODO: Handle this error */
+        printf("Malformed MSG to arbiter\n");
+        return state_arb_idle;
+    }
+
+    return state_arb_idle;
+}
+
+arb_msgList *arb_enqueue(arb_cluster *cluster_in) {
+    arb_msgList *p = NULL;
+    p = malloc( sizeof (arb_msgList) );
+    if (!p) {
+        // TODO handle this abort better
+        perror("malloc failed for enqueue");
+        abort();
+    }
+
+    if ( !cluster_in->exec_queue.first ) {
+        cluster_in->exec_queue.first = p;
+    } else {
+        arb_msgList *current = cluster_in->exec_queue.first;
+        while (current->next) {
+            current = current->next;
+        }
+        current->next = p;
+        cluster_in->exec_queue.last = p;
+    }
+    cluster_in->exec_queue.length++;
+    return p;
+}
+
+arb_msgList *arb_dequeue(arb_cluster *cluster_in) {
+    arb_msgList  *p = NULL;
+
+    if ( !cluster_in->exec_queue.length ) {
+        return NULL;
+    } else if ( cluster_in->exec_queue.length == 1) {
+        p = cluster_in->exec_queue.first;
+        cluster_in->exec_queue.first = NULL;
+        cluster_in->exec_queue.last = NULL;
+        cluster_in->exec_queue.length = 0;
+        return p;
+    }
+
+    arb_msgList *current = cluster_in->exec_queue.first;
+    while (current->next->next) {
+        current = current->next;
+    }
+    cluster_in->exec_queue.last = current;
+    p = current->next;
+    current->next = NULL;
+    cluster_in->exec_queue.length--;
+    return p;
 }
