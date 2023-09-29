@@ -23,7 +23,7 @@ arb_cluster  *state_arbFsm_setup(dcl_queue_type *arb_queue_in, dcl_queue_type *t
 state_arb state_arbFsm_init(arb_cluster *cluster_in) {
     printf("Arbiter Init:\n");
 
-    return state_arb_exit;
+    return state_arb_idle;
 }
 
 state_arb state_arbFsm_idle(arb_cluster *cluster_in) {
@@ -47,7 +47,7 @@ state_arb state_arbFsm_getMsg(arb_cluster *cluster_in) {
             cluster_in->arb_fsm->opt_field |= MSGRDY;
             return state_arb_idle;
         case NOMSGS:
-            return state_arb_idle;
+            return state_arb_exit;  // TODO: Escape here
         case MSGERR:
         default:
             return state_arb_critical;
@@ -69,6 +69,17 @@ state_arb state_arbFsm_readMsg(arb_cluster *cluster_in) {
         return state_arb_idle;
     }
 
+    arb_msgList *p = arb_enqueue(cluster_in);
+    /* The first arg is special, we change this into a int */
+    p->dest_ID = (int) strtol(argv[0], NULL, 10);
+    /* Since we have used the first arg, we start counting from 1 */
+    for (int i = 0; i < argc - 1; i++) {
+        strcpy(p->msg[i], argv[i + 1]);
+    }
+
+    /* We have handled the MSG so unflag MSGRDY */
+    cluster_in->arb_fsm->opt_field &= ~MSGRDY;
+
     return state_arb_idle;
 }
 
@@ -81,16 +92,14 @@ arb_msgList *arb_enqueue(arb_cluster *cluster_in) {
         abort();
     }
 
-    if ( !cluster_in->exec_queue.first ) {
+    if ( !cluster_in->exec_queue.length ) {
         cluster_in->exec_queue.first = p;
+        cluster_in->exec_queue.last = p;
     } else {
-        arb_msgList *current = cluster_in->exec_queue.first;
-        while (current->next) {
-            current = current->next;
-        }
-        current->next = p;
+        cluster_in->exec_queue.last->next = p;
         cluster_in->exec_queue.last = p;
     }
+    p->next = NULL;
     cluster_in->exec_queue.length++;
     return p;
 }
@@ -108,13 +117,9 @@ arb_msgList *arb_dequeue(arb_cluster *cluster_in) {
         return p;
     }
 
-    arb_msgList *current = cluster_in->exec_queue.first;
-    while (current->next->next) {
-        current = current->next;
-    }
-    cluster_in->exec_queue.last = current;
-    p = current->next;
-    current->next = NULL;
+    p = cluster_in->exec_queue.first;
+    cluster_in->exec_queue.first->next = cluster_in->exec_queue.first;
+
     cluster_in->exec_queue.length--;
     return p;
 }

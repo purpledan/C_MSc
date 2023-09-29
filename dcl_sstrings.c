@@ -110,5 +110,5 @@ int dcl_sstr_strsep(char *argv[], char *str_in, char delimiter, bool useWspace, 
     }
 
 
-    return index + 1; /* We want the number of args, not just the index */
+    return index;
 }

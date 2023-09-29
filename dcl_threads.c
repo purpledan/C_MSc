@@ -61,7 +61,7 @@ void *parserThread(void *arg) {
             [state_dcode_abort] = state_dcodeFsm_abort};
     state_dcode next_state = state_dcode_init;
 
-    dcode_cluster *thread_cluster = state_dcodeM_setup( arg, &pump_queue);
+    dcode_cluster *thread_cluster = state_dcodeM_setup( arg, &arb_queue);
 
     while (next_state != state_dcode_exit) {
         next_state = fsm_dcode[next_state](thread_cluster);

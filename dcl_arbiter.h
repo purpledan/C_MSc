@@ -33,14 +33,13 @@ typedef enum state_arb {
 
 typedef struct arb_msgList {
     int dest_ID;
-    char msg[DCL_STRMSG_LEN];
+    char msg[DCL_DCODE_ARGNUM][DCL_DCODE_ARGLEN];
     struct arb_msgList *next;
 } arb_msgList;
 
 typedef struct arb_execQueue {
     size_t length;
     arb_msgList *first;
-    arb_msgList *current;
     arb_msgList *last;
 }arb_execQueue;
 
