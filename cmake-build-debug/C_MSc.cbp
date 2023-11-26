@@ -4,17 +4,17 @@
 	<Project>
 		<Option title="C_MSc"/>
 		<Option makefile_is_custom="1"/>
-		<Option compiler="clang"/>
+		<Option compiler="gcc"/>
 		<Option virtualFolders="CMake Files\;"/>
 		<Build>
 			<Target title="all">
 				<Option working_dir="/home/dan/REPOS/C_MSc/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
-					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="C_MSc">
@@ -22,16 +22,18 @@
 				<Option working_dir="/home/dan/REPOS/C_MSc/cmake-build-debug"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
-				<Option compiler="clang"/>
+				<Option compiler="gcc"/>
 				<Compiler>
-					<Add directory="/usr/lib/clang/14.0.5/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed"/>
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 C_MSc"/>
-					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 C_MSc"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="C_MSc/fast">
@@ -39,36 +41,38 @@
 				<Option working_dir="/home/dan/REPOS/C_MSc/cmake-build-debug"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
-				<Option compiler="clang"/>
+				<Option compiler="gcc"/>
 				<Compiler>
-					<Add directory="/usr/lib/clang/14.0.5/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-linux-gnu/13.2.1/include-fixed"/>
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 C_MSc/fast"/>
-					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 C_MSc/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="edit_cache">
 				<Option working_dir="/home/dan/REPOS/C_MSc/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
-					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="rebuild_cache">
 				<Option working_dir="/home/dan/REPOS/C_MSc/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
-					<CompileFile command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j4 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/dan/REPOS/C_MSc/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 		</Build>
@@ -76,6 +80,9 @@
 			<Option target="C_MSc"/>
 		</Unit>
 		<Unit filename="/home/dan/REPOS/C_MSc/dcl_arbiter.h">
+			<Option target="C_MSc"/>
+		</Unit>
+		<Unit filename="/home/dan/REPOS/C_MSc/dcl_config.c">
 			<Option target="C_MSc"/>
 		</Unit>
 		<Unit filename="/home/dan/REPOS/C_MSc/dcl_config.h">
@@ -151,6 +158,12 @@
 			<Option target="C_MSc"/>
 		</Unit>
 		<Unit filename="/home/dan/REPOS/C_MSc/dcl_triKont.h">
+			<Option target="C_MSc"/>
+		</Unit>
+		<Unit filename="/home/dan/REPOS/C_MSc/inih/ini.c">
+			<Option target="C_MSc"/>
+		</Unit>
+		<Unit filename="/home/dan/REPOS/C_MSc/inih/ini.h">
 			<Option target="C_MSc"/>
 		</Unit>
 		<Unit filename="/home/dan/REPOS/C_MSc/main.c">

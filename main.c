@@ -28,6 +28,7 @@ o888bood8P'    `Y8bood8P'  o888ooooood8
 #include "dcl_triKont.h"
 #include "dcl_threads.h"
 #include "dcl_fsm.h"
+#include "dcl_config.h"
 
 /* Global Variables */
 dcl_queue_type pump_queue = {
@@ -62,6 +63,36 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
+    /* Prepping reading of config.ini */
+    dcl_conf config;
+    config.addr_SP = NULL;
+    config.addr_magStir = NULL;
+    bool new_cfg = false;
+    /* Check if there is a config.ini file in the folder containing the program */
+    FILE *cfg_ini = NULL;
+    do {
+        cfg_ini = fopen("config.ini", "r");
+        if (new_cfg && !cfg_ini) {
+            /* This means a new file has been created, but it failed to open */
+            fprintf(stderr,"Failed to open new config.ini, aborting\n");
+            return EXIT_FAILURE;
+        }
+        if (!cfg_ini) {
+            /* No such files exist, create one instead */
+            if ( conf_writer() < 0) {
+                return EXIT_FAILURE;
+            } else {
+                new_cfg = true;
+                printf("Default config.ini used\n");
+            }
+        }
+    } while (!cfg_ini);
+    /* ini_parse_file reads the cfg_ini fd, the wrapper conf_reader closes it*/
+    if ( conf_reader(cfg_ini, conf_handler, &config) < 0 ) {
+        return EXIT_FAILURE;
+    }
+    printf("Config.ini read successfully\n");
+
     printf("\x1b[0;32mStarting Arbiter & DCODE threads:\n");
 
     dcl_queue_init(&pump_queue);
@@ -69,13 +100,13 @@ int main(int argc, char *argv[]) {
     int status;
 
     pthread_t pumpTh_ID, parser_ID, arb_ID;
-
+    /* Passing file pointer from commandline */
     status = pthread_create(&parser_ID, NULL, parserThread, fp);
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }
-
-    status = pthread_create(&pumpTh_ID, NULL, pumpThread, NULL);
+    /* Passing dev name from config.ini */
+    status = pthread_create(&pumpTh_ID, NULL, pumpThread, config.addr_SP);
     if (status) {
         printf("Thread Fuckup, %d\n", status);
     }

@@ -21,6 +21,26 @@ int conf_handler(void *user, const char *section, const char *name, const char *
 }
 #undef MATCH
 
+int conf_reader(FILE *cfg_file, ini_handler handler, void *config) {
+    int ini_error = ini_parse_file(cfg_file, conf_handler, config);
+    switch (ini_error) {
+        case 0:
+            break;
+        case -1:
+            fprintf(stderr,"Config.ini failed to open, aborting\n");
+            return -1;
+        case -2:
+            fprintf(stderr, "Config.ini malloc failure, aborting\n");
+            return -1;
+        default:
+            fprintf(stderr, "Error on line: %d, aborting\n", ini_error);
+            fclose(cfg_file);
+            return -1;
+    }
+    fclose(cfg_file);
+    return 0;
+}
+
 int conf_writer(void) {
     FILE *cfg_ini = fopen("config.ini", "w+");
     if (!cfg_ini) {
