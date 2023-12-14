@@ -73,16 +73,17 @@ void *parserThread(void *arg) {
 
 void *arbThread(void *arg) {
     /* Finite state machine array */
-    state_arb ( *fsm_arb[arb_numStates] )(arb_cluster *cluster_in) =
-            {[state_arb_init] = state_arbFsm_init,
-             [state_arb_idle] = state_arbFsm_idle,
-             [state_arb_getMsg] = state_arbFsm_getMsg,
-             [state_arb_readMsg] = state_arbFsm_readMsg};
+    state_spv (*fsm_arb[arb_numStates] )(spv_cluster * cluster_in) =
+            {[state_spv_init] = state_spvFsm_init,
+             [state_spv_idle] = state_spvFsm_idle,
+             [state_spv_getJob] = state_spvFsm_getJob,
+             [state_arb_readMsg] = state_spvFsm_procJob};
 
-    state_arb next_state = state_arb_init;
-    arb_cluster *thread_cluster = state_arbFsm_setup( &arb_queue, &pump_queue);
+    state_spv next_state = state_spv_init;
+    spv_cluster *thread_cluster = state_spvFsm_setup(&arb_queue, &pump_queue);
 
     while (next_state != state_arb_exit) {
+        thread_cluster->prev_state = next_state;
         next_state = fsm_arb[next_state](thread_cluster);
     }
 

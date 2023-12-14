@@ -13,7 +13,7 @@
 #include "dcl_serial.h"
 #include "dcl_fsm_triKont.h"
 #include "dcl_dcode.h"
-#include "dcl_arbiter.h"
+#include "dcl_supervisor.h"
 
 void *pumpThread(void *arg);
 
